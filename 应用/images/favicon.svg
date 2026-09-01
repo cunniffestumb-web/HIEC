@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="HIEC">
+  <defs>
+    <linearGradient id="hiec-favicon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00d4ff"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0a0a0f"/>
+  <path d="M16 18h9v10h14V18h9v28h-9V36H25v10h-9z" fill="url(#hiec-favicon)"/>
+  <circle cx="51" cy="50" r="4" fill="#06ffa5"/>
+</svg>

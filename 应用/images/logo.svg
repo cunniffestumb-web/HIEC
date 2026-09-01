@@ -1,0 +1,72 @@
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00ffff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0080ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8000ff;stop-opacity:1" />
+    </linearGradient>
+    <filter id="logoGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/> 
+      </feMerge>
+    </filter>
+    <linearGradient id="hologramGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ffff;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#0080ff;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#8000ff;stop-opacity:0.4" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 全息投影效果背景 -->
+  <rect x="0" y="0" width="200" height="60" rx="8" fill="url(#hologramGradient)" opacity="0.1"/>
+  
+  <!-- 全息边框 -->
+  <rect x="2" y="2" width="196" height="56" rx="6" fill="none" stroke="url(#logoGradient)" stroke-width="1" opacity="0.6">
+    <animate attributeName="stroke-opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+  </rect>
+  
+  <!-- 主标题文字 -->
+  <text x="20" y="25" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="url(#logoGradient)" filter="url(#logoGlow)">
+    全息智能教育云
+  </text>
+  
+  <!-- 英文副标题 -->
+  <text x="20" y="42" font-family="Arial, sans-serif" font-size="8" fill="#00ffff" opacity="0.8">
+    HOLOGRAPHIC INTELLIGENT EDUCATION CLOUD
+  </text>
+  
+  <!-- 全息投影图标 -->
+  <g transform="translate(160, 15)">
+    <!-- 立体方块 -->
+    <g fill="none" stroke="url(#logoGradient)" stroke-width="1.5" opacity="0.8">
+      <path d="M 0 15 L 15 15 L 30 0 L 15 0 Z" fill="url(#logoGradient)" opacity="0.2"/>
+      <path d="M 0 15 L 0 30 L 15 30 L 15 15 Z" fill="url(#logoGradient)" opacity="0.3"/>
+      <path d="M 15 15 L 15 30 L 30 15 L 30 0 Z" fill="url(#logoGradient)" opacity="0.4"/>
+      <path d="M 0 15 L 15 15 L 30 0 L 15 0 Z"/>
+      <path d="M 0 15 L 0 30 L 15 30 L 15 15 Z"/>
+      <path d="M 15 15 L 15 30 L 30 15 L 30 0 Z"/>
+    </g>
+    
+    <!-- 全息扫描线 -->
+    <line x1="0" y1="0" x2="30" y2="30" stroke="#00ffff" stroke-width="0.5" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
+    </line>
+    <line x1="30" y1="0" x2="0" y2="30" stroke="#00ffff" stroke-width="0.5" opacity="0.4">
+      <animate attributeName="opacity" values="0.4;0.8;0.4" dur="1.8s" repeatCount="indefinite"/>
+    </line>
+  </g>
+  
+  <!-- 数据流动效果 -->
+  <g opacity="0.5">
+    <circle cx="10" cy="50" r="1" fill="#00ffff">
+      <animate attributeName="cx" values="10;190;10" dur="4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="15" cy="8" r="0.8" fill="#0080ff">
+      <animate attributeName="cx" values="15;185;15" dur="3.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;1;0" dur="3.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

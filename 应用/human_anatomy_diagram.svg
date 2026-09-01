@@ -1,0 +1,20 @@
+<svg width="500" height="700" viewBox="0 0 500 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Body Outline -->
+    <path d="M250 50 C 220 50 200 80 200 110 C 200 130 210 145 220 150 L 180 160 C 150 170 140 200 140 250 L 130 400 L 150 400 L 160 280 L 200 280 L 200 450 L 180 650 L 220 650 L 240 480 L 260 480 L 280 650 L 320 650 L 300 450 L 300 280 L 340 280 L 350 400 L 370 400 L 360 250 C 360 200 350 170 320 160 L 280 150 C 290 145 300 130 300 110 C 300 80 280 50 250 50 Z" 
+          fill="rgba(255, 255, 255, 0.1)" 
+          stroke="rgba(0, 212, 255, 0.5)" 
+          stroke-width="2"/>
+    
+    <!-- Internal Organ Placeholders (for visual context) -->
+    <!-- Brain Area -->
+    <ellipse cx="250" cy="90" rx="30" ry="25" fill="rgba(255, 255, 255, 0.05)" />
+    
+    <!-- Lungs Area -->
+    <path d="M220 200 Q 200 250 220 300 Q 240 250 220 200 Z" fill="rgba(255, 255, 255, 0.05)" />
+    <path d="M280 200 Q 300 250 280 300 Q 260 250 280 200 Z" fill="rgba(255, 255, 255, 0.05)" />
+    
+    <!-- Heart Area -->
+    <path d="M250 260 L 240 240 A 10 10 0 0 1 260 240 Z" fill="rgba(255, 100, 100, 0.1)" />
+
+    <text x="50%" y="95%" text-anchor="middle" fill="#00d4ff" font-family="sans-serif" font-size="14">全息人体扫描视图</text>
+</svg>

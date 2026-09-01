@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天体物理演示 - 全息智能教育云</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <!-- Three.js 库 -->
+    <script src="vendor/three/three.min.js"></script>
+    <script>
+        // 内联OrbitControls代码以避免CORS问题
+        THREE.OrbitControls = function ( object, domElement ) {
+            this.object = object;
+            this.domElement = ( domElement !== undefined ) ? domElement : document;
+            this.enabled = true;
+            this.target = new THREE.Vector3();
+            this.minDistance = 0;
+            this.maxDistance = Infinity;
+            this.minZoom = 0;
+            this.maxZoom = Infinity;
+            this.minPolarAngle = 0;
+            this.maxPolarAngle = Math.PI;
+            this.minAzimuthAngle = - Infinity;
+            this.maxAzimuthAngle = Infinity;
+            this.enableDamping = false;
+            this.dampingFactor = 0.25;
+            this.enableZoom = true;
+            this.zoomSpeed = 1.0;
+            this.enableRotate = true;
+            this.rotateSpeed = 1.0;
+            this.enablePan = true;
+            this.panSpeed = 1.0;
+            this.screenSpacePanning = false;
+            this.keyPanSpeed = 7.0;
+            this.autoRotate = false;
+            this.autoRotateSpeed = 2.0;
+            this.enableKeys = true;
+            this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
+            this.mouseButtons = { LEFT: THREE.MOUSE.LEFT, MIDDLE: THREE.MOUSE.MIDDLE, RIGHT: THREE.MOUSE.RIGHT };
+            this.target0 = this.target.clone();
+            this.position0 = this.object.position.clone();
+            this.zoom0 = this.object.zoom;
+            
+            var scope = this;
+            var changeEvent = { type: 'change' };
+            var startEvent = { type: 'start' };
+            var endEvent = { type: 'end' };
+            var STATE = { NONE: - 1, ROTATE: 0, DOLLY: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_DOLLY_PAN: 4 };
+            var state = STATE.NONE;
+            var EPS = 0.000001;
+            var spherical = new THREE.Spherical();
+            var sphericalDelta = new THREE.Spherical();
+            var scale = 1;
+            var panOffset = new THREE.Vector3();
+            var zoomChanged = false;
+            var rotateStart = new THREE.Vector2();
+            var rotateEnd = new THREE.Vector2();
+            var rotateDelta = new THREE.Vector2();
+            var panStart = new THREE.Vector2();
+            var panEnd = new THREE.Vector2();
+            var panDelta = new THREE.Vector2();
+            var dollyStart = new THREE.Vector2();
+            var dollyEnd = new THREE.Vector2();
+            var dollyDelta = new THREE.Vector2();
+            
+            this.update = function () {
+                var offset = new THREE.Vector3();
+                var quat = new THREE.Quaternion().setFromUnitVectors( object.up, new THREE.Vector3( 0, 1, 0 ) );
+                var quatInverse = quat.clone().invert();
+                var lastPosition = new THREE.Vector3();
+                var lastQuaternion = new THREE.Quaternion();
+                
+                return function update() {
+                    var position = scope.object.position;
+                    offset.copy( position ).sub( scope.target );
+                    offset.applyQuaternion( quat );
+                    spherical.setFromVector3( offset );
+                    
+                    if ( scope.autoRotate && state === STATE.NONE ) {
+                        rotateLeft( getAutoRotationAngle() );
+                    }
+                    
+                    spherical.theta += sphericalDelta.theta;
+                    spherical.phi += sphericalDelta.phi;
+                    spherical.theta = Math.max( scope.minAzimuthAngle, Math.min( scope.maxAzimuthAngle, spherical.theta ) );
+                    spherical.phi = Math.max( scope.minPolarAngle, Math.min( scope.maxPolarAngle, spherical.phi ) );
+                    spherical.makeSafe();
+                    spherical.radius *= scale;
+                    spherical.radius = Math.max( scope.minDistance, Math.min( scope.maxDistance, spherical.radius ) );
+                    
+                    scope.target.add( panOffset );
+                    offset.setFromSpherical( spherical );
+                    offset.applyQuaternion( quatInverse );
+                    position.copy( scope.target ).add( offset );
+                    scope.object.lookAt( scope.target );
+                    
+                    if ( scope.enableDamping === true ) {
+                        sphericalDelta.theta *= ( 1 - scope.dampingFactor );
+                        sphericalDelta.phi *= ( 1 - scope.dampingFactor );
+                        panOffset.multiplyScalar( 1 - scope.dampingFactor );
+                    } else {
+                        sphericalDelta.set( 0, 0, 0 );
+                        panOffset.set( 0, 0, 0 );
+                    }
+                    
+                    scale = 1;
+                    
+                    if ( zoomChanged || lastPosition.distanceToSquared( scope.object.position ) > EPS || 8 * ( 1 - lastQuaternion.dot( scope.object.quaternion ) ) > EPS ) {
+                        scope.dispatchEvent( changeEvent );
+                        lastPosition.copy( scope.object.position );
+                        lastQuaternion.copy( scope.object.quaternion );
+                        zoomChanged = false;
+                        return true;
+                    }
+                    
+                    return false;
+                };
+            }();
+            
+            function getAutoRotationAngle() {
+                return 2 * Math.PI / 60 / 60 * scope.autoRotateSpeed;
+            }
+            
+            function getZoomScale() {
+                return Math.pow( 0.95, scope.zoomSpeed );
+            }
+            
+            function rotateLeft( angle ) {
+                sphericalDelta.theta -= angle;
+            }
+            
+            function rotateUp( angle ) {
+                sphericalDelta.phi -= angle;
+            }
+            
+            var panLeft = function () {
+                var v = new THREE.Vector3();
+                return function panLeft( distance, objectMatrix ) {
+                    v.setFromMatrixColumn( objectMatrix, 0 );
+                    v.multiplyScalar( - distance );
+                    panOffset.add( v );
+                };
+            }();
+            
+            var panUp = function () {
+                var v = new THREE.Vector3();
+                return function panUp( distance, objectMatrix ) {
+                    if ( scope.screenSpacePanning === true ) {
+                        v.setFromMatrixColumn( objectMatrix, 1 );
+                    } else {
+                        v.setFromMatrixColumn( objectMatrix, 0 );
+                        v.crossVectors( scope.object.up, v );
+                    }
+                    v.multiplyScalar( distance );
+                    panOffset.add( v );
+                };
+            }();
+            
+            var pan = function () {
+                var offset = new THREE.Vector3();
+                return function pan( deltaX, deltaY ) {
+                    var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+                    if ( scope.object.isPerspectiveCamera ) {
+                        var position = scope.object.position;
+                        offset.copy( position ).sub( scope.target );
+                        var targetDistance = offset.length();
+                        targetDistance *= Math.tan( ( scope.object.fov / 2 ) * Math.PI / 180.0 );
+                        panLeft( 2 * deltaX * targetDistance / element.clientHeight, scope.object.matrix );
+                        panUp( 2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix );
+                    } else if ( scope.object.isOrthographicCamera ) {
+                        panLeft( deltaX * ( scope.object.right - scope.object.left ) / scope.object.zoom / element.clientWidth, scope.object.matrix );
+                        panUp( deltaY * ( scope.object.top - scope.object.bottom ) / scope.object.zoom / element.clientHeight, scope.object.matrix );
+                    } else {
+                        console.warn( 'WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.' );
+                        scope.enablePan = false;
+                    }
+                };
+            }();
+            
+            function dollyIn( dollyScale ) {
+                if ( scope.object.isPerspectiveCamera ) {
+                    scale /= dollyScale;
+                } else if ( scope.object.isOrthographicCamera ) {
+                    scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom * dollyScale ) );
+                    scope.object.updateProjectionMatrix();
+                    zoomChanged = true;
+                } else {
+                    console.warn( 'WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.' );
+                    scope.enableZoom = false;
+                }
+            }
+            
+            function dollyOut( dollyScale ) {
+                if ( scope.object.isPerspectiveCamera ) {
+                    scale *= dollyScale;
+                } else if ( scope.object.isOrthographicCamera ) {
+                    scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom / dollyScale ) );
+                    scope.object.updateProjectionMatrix();
+                    zoomChanged = true;
+                } else {
+                    console.warn( 'WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.' );
+                    scope.enableZoom = false;
+                }
+            }
+            
+            function handleMouseDownRotate( event ) {
+                rotateStart.set( event.clientX, event.clientY );
+            }
+            
+            function handleMouseDownDolly( event ) {
+                dollyStart.set( event.clientX, event.clientY );
+            }
+            
+            function handleMouseDownPan( event ) {
+                panStart.set( event.clientX, event.clientY );
+            }
+            
+            function handleMouseMoveRotate( event ) {
+                rotateEnd.set( event.clientX, event.clientY );
+                rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( scope.rotateSpeed );
+                var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+                rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientHeight );
+                rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
+                rotateStart.copy( rotateEnd );
+                scope.update();
+            }
+            
+            function handleMouseMoveDolly( event ) {
+                dollyEnd.set( event.clientX, event.clientY );
+                dollyDelta.subVectors( dollyEnd, dollyStart );
+                if ( dollyDelta.y > 0 ) {
+                    dollyIn( getZoomScale() );
+                } else if ( dollyDelta.y < 0 ) {
+                    dollyOut( getZoomScale() );
+                }
+                dollyStart.copy( dollyEnd );
+                scope.update();
+            }
+            
+            function handleMouseMovePan( event ) {
+                panEnd.set( event.clientX, event.clientY );
+                panDelta.subVectors( panEnd, panStart ).multiplyScalar( scope.panSpeed );
+                pan( panDelta.x, panDelta.y );
+                panStart.copy( panEnd );
+                scope.update();
+            }
+            
+            function handleMouseWheel( event ) {
+                if ( event.deltaY < 0 ) {
+                    dollyOut( getZoomScale() );
+                } else if ( event.deltaY > 0 ) {
+                    dollyIn( getZoomScale() );
+                }
+                scope.update();
+            }
+            
+            function onMouseDown( event ) {
+                if ( scope.enabled === false ) return;
+                event.preventDefault();
+                switch ( event.button ) {
+                    case scope.mouseButtons.LEFT:
+                        if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+                            if ( scope.enablePan === false ) return;
+                            handleMouseDownPan( event );
+                            state = STATE.PAN;
+                        } else {
+                            if ( scope.enableRotate === false ) return;
+                            handleMouseDownRotate( event );
+                            state = STATE.ROTATE;
+                        }
+                        break;
+                    case scope.mouseButtons.MIDDLE:
+                        if ( scope.enableZoom === false ) return;
+                        handleMouseDownDolly( event );
+                        state = STATE.DOLLY;
+                        break;
+                    case scope.mouseButtons.RIGHT:
+                        if ( scope.enablePan === false ) return;
+                        handleMouseDownPan( event );
+                        state = STATE.PAN;
+                        break;
+                }
+                if ( state !== STATE.NONE ) {
+                    document.addEventListener( 'mousemove', onMouseMove, false );
+                    document.addEventListener( 'mouseup', onMouseUp, false );
+                    scope.dispatchEvent( startEvent );
+                }
+            }
+            
+            function onMouseMove( event ) {
+                if ( scope.enabled === false ) return;
+                event.preventDefault();
+                switch ( state ) {
+                    case STATE.ROTATE:
+                        if ( scope.enableRotate === false ) return;
+                        handleMouseMoveRotate( event );
+                        break;
+                    case STATE.DOLLY:
+                        if ( scope.enableZoom === false ) return;
+                        handleMouseMoveDolly( event );
+                        break;
+                    case STATE.PAN:
+                        if ( scope.enablePan === false ) return;
+                        handleMouseMovePan( event );
+                        break;
+                }
+            }
+            
+            function onMouseUp( event ) {
+                if ( scope.enabled === false ) return;
+                document.removeEventListener( 'mousemove', onMouseMove, false );
+                document.removeEventListener( 'mouseup', onMouseUp, false );
+                scope.dispatchEvent( endEvent );
+                state = STATE.NONE;
+            }
+            
+            function onMouseWheel( event ) {
+                if ( scope.enabled === false || scope.enableZoom === false || ( state !== STATE.NONE && state !== STATE.ROTATE ) ) return;
+                event.preventDefault();
+                event.stopPropagation();
+                scope.dispatchEvent( startEvent );
+                handleMouseWheel( event );
+                scope.dispatchEvent( endEvent );
+            }
+            
+            scope.domElement.addEventListener( 'contextmenu', function ( event ) { event.preventDefault(); }, false );
+            scope.domElement.addEventListener( 'mousedown', onMouseDown, false );
+            scope.domElement.addEventListener( 'wheel', onMouseWheel, false );
+            
+            this.update();
+        };
+        
+        THREE.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+        THREE.OrbitControls.prototype.constructor = THREE.OrbitControls;
+    </script>
+    <style>
+        .astronomy-page {
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .astronomy-hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, rgba(138,43,226,0.1) 0%, transparent 70%);
+        }
+        
+        .space-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .solar-system {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: transparent;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        @keyframes solarSystemRotate {
+            0% { transform: rotateY(0deg) rotateX(15deg); }
+            100% { transform: rotateY(360deg) rotateX(15deg); }
+        }
+        
+        .sun {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #ffeb3b 0%, #ff9800 50%, #ff5722 100%);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 50px rgba(255,235,59,0.8), 0 0 100px rgba(255,152,0,0.4);
+            animation: sunPulse 3s ease-in-out infinite;
+            cursor: pointer;
+        }
+        
+        @keyframes sunPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+        
+        .orbit {
+            position: absolute;
+            border: 1px solid rgba(138,43,226,0.3);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+        
+        .planet:hover {
+            transform: scale(1.5);
+            z-index: 100;
+        }
+        
+        /* 行星轨道和大小 */
+        .mercury-orbit { width: 150px; height: 150px; }
+        .venus-orbit { width: 200px; height: 200px; }
+        .earth-orbit { width: 250px; height: 250px; }
+        .mars-orbit { width: 300px; height: 300px; }
+        .jupiter-orbit { width: 400px; height: 400px; }
+        .saturn-orbit { width: 500px; height: 500px; }
+        
+        .mercury {
+            width: 12px;
+            height: 12px;
+            background: #8c7853;
+            top: -6px;
+            left: 50%;
+            margin-left: -6px;
+            animation: orbit-mercury 8s linear infinite;
+        }
+        
+        .venus {
+            width: 16px;
+            height: 16px;
+            background: #ffc649;
+            top: -8px;
+            left: 50%;
+            margin-left: -8px;
+            animation: orbit-venus 12s linear infinite;
+        }
+        
+        .earth {
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(45deg, #6b93d6, #4d84c4);
+            top: -9px;
+            left: 50%;
+            margin-left: -9px;
+            animation: orbit-earth 16s linear infinite;
+            position: relative;
+        }
+        
+        .earth::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ccc;
+            border-radius: 50%;
+            top: -10px;
+            left: 50%;
+            margin-left: -2px;
+            animation: moon-orbit 2s linear infinite;
+        }
+        
+        .mars {
+            width: 14px;
+            height: 14px;
+            background: #cd5c5c;
+            top: -7px;
+            left: 50%;
+            margin-left: -7px;
+            animation: orbit-mars 20s linear infinite;
+        }
+        
+        .jupiter {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(45deg, #d8ca9d, #fab981);
+            top: -17.5px;
+            left: 50%;
+            margin-left: -17.5px;
+            animation: orbit-jupiter 30s linear infinite;
+        }
+        
+        .saturn {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(45deg, #fad5a5, #ffb347);
+            top: -15px;
+            left: 50%;
+            margin-left: -15px;
+            animation: orbit-saturn 40s linear infinite;
+            position: relative;
+        }
+        
+        .saturn::before {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255,179,71,0.6);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        /* 行星轨道动画 */
+        @keyframes orbit-mercury { 0% { transform: rotate(0deg) translateX(75px) rotate(0deg); } 100% { transform: rotate(360deg) translateX(75px) rotate(-360deg); } }
+        @keyframes orbit-venus { 0% { transform: rotate(0deg) translateX(100px) rotate(0deg); } 100% { transform: rotate(360deg) translateX(100px) rotate(-360deg); } }
+        @keyframes orbit-earth { 0% { transform: rotate(0deg) translateX(125px) rotate(0deg); } 100% { transform: rotate(360deg) translateX(125px) rotate(-360deg); } }
+        @keyframes orbit-mars { 0% { transform: rotate(0deg) translateX(150px) rotate(0deg); } 100% { transform: rotate(360deg) translateX(150px) rotate(-360deg); } }
+        @keyframes orbit-jupiter { 0% { transform: rotate(0deg) translateX(200px) rotate(0deg); } 100% { transform: rotate(360deg) translateX(200px) rotate(-360deg); } }
+        @keyframes orbit-saturn { 0% { transform: rotate(0deg) translateX(250px) rotate(0deg); } 100% { transform: rotate(360deg) translateX(250px) rotate(-360deg); } }
+        @keyframes moon-orbit { 0% { transform: rotate(0deg) translateX(15px) rotate(0deg); } 100% { transform: rotate(360deg) translateX(15px) rotate(-360deg); } }
+        
+        .constellation-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 2s ease-in-out infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        .control-panel {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px 20px 30px;
+            border: 1px solid rgba(138,43,226,0.3);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .control-panel.collapsed { transform: translateY(-50%) translateX(110%); }
+        .control-panel .panel-toggle {
+            position: absolute;
+            left: -36px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px; height: 64px;
+            border-radius: 10px 0 0 10px;
+            background: linear-gradient(180deg, #8a2be2, #4b0082);
+            color: white;
+            border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        /* 3D控制面板样式 */
+        .control-group {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(138,43,226,0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(138,43,226,0.2);
+        }
+        
+        .control-group h4 {
+            color: #9370db;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .control-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+        
+        .control-item label {
+            color: #ccc;
+            font-size: 12px;
+            flex: 1;
+        }
+        
+        .control-slider {
+            flex: 2;
+            margin: 0 10px;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: rgba(138,43,226,0.3);
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #9370db;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(147,112,219,0.5);
+        }
+        
+        .control-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #9370db;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 8px rgba(147,112,219,0.5);
+        }
+        
+        .control-value {
+            color: #9370db;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 35px;
+            text-align: right;
+        }
+        
+        .control-button {
+            width: auto;
+            min-width: 120px;
+            padding: 8px 16px;
+            background: linear-gradient(45deg, #8a2be2, #4b0082);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 5px auto;
+            display: block;
+            white-space: nowrap;
+        }
+        
+        .control-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(138,43,226,0.4);
+        }
+        
+        .control-button.active {
+            background: linear-gradient(45deg, #9370db, #8a2be2);
+            box-shadow: 0 0 15px rgba(138,43,226,0.5);
+        }
+        
+        /* 黑洞按钮特殊样式 */
+        .blackhole-button {
+            background: linear-gradient(135deg, #000000, #1a1a1a, #333333) !important;
+            border: 2px solid #444 !important;
+            color: #fff !important;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .blackhole-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+        
+        .blackhole-button:hover::before {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .blackhole-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8), 0 0 30px rgba(255,255,255,0.1);
+            border-color: #666 !important;
+        }
+        
+        .info-panel {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px 20px 30px;
+            border: 1px solid rgba(138,43,226,0.3);
+            max-width: 350px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .info-panel.collapsed { transform: translateY(-50%) translateX(-110%); }
+        .info-panel .panel-toggle {
+            position: absolute;
+            right: -36px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px; height: 64px;
+            border-radius: 0 10px 10px 0;
+            background: linear-gradient(180deg, #8a2be2, #4b0082);
+            color: white;
+            border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .info-title {
+            color: #8a2be2;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .info-content {
+            color: rgba(255,255,255,0.8);
+            line-height: 1.6;
+        }
+        
+        .space-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .space-particle {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            background: #fff;
+            border-radius: 50%;
+            animation: spaceFloat 8s linear infinite;
+        }
+        
+        @keyframes spaceFloat {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        .telescope-view {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 600px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 20px;
+            border: 1px solid rgba(138,43,226,0.3);
+            z-index: 1000;
+        }
+        
+        .telescope-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        /* 移除原有的缩放控制样式，改为3D控制面板 */
+        
+        .celestial-objects {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .celestial-btn {
+            padding: 8px 16px;
+            background: rgba(138,43,226,0.2);
+            color: #8a2be2;
+            border: 1px solid rgba(138,43,226,0.3);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .celestial-btn:hover,
+        .celestial-btn.active {
+            background: rgba(138,43,226,0.4);
+            border-color: #8a2be2;
+        }
+        
+
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .nebula-effect {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(138,43,226,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: nebulaFloat 10s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes nebulaFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.1); }
+            50% { transform: translate(-30px, 50px) scale(0.9); }
+            75% { transform: translate(-50px, -20px) scale(1.05); }
+        }
+    </style>
+</head>
+<body class="astronomy-page">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="images/logo.svg" alt="HIEC Logo" class="logo-img">
+                <span class="logo-text">HIEC</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="features.html">功能特性</a></li>
+                <li><a href="scenarios.html">应用场景</a></li>
+                <li><a href="architecture.html">技术架构</a></li>
+                <li><a href="resources.html">项目资源</a></li>
+                <li><a href="roadmap.html">发展路线图</a></li>
+                <li><a href="team.html">团队介绍</a></li>
+                <li><a href="contact.html">联系我们</a></li>
+            </ul>
+            <div class="mobile-menu-toggle">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div class="mobile-nav-menu">
+            <ul class="mobile-nav-links">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="features.html">功能特性</a></li>
+                <li><a href="scenarios.html">应用场景</a></li>
+                <li><a href="architecture.html">技术架构</a></li>
+                <li><a href="resources.html">项目资源</a></li>
+                <li><a href="roadmap.html">发展路线图</a></li>
+                <li><a href="team.html">团队介绍</a></li>
+                <li><a href="contact.html">联系我们</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 天体物理演示界面 -->
+    <section class="astronomy-hero">
+        <div class="space-container">
+            <!-- 太阳系模型 -->
+            <div class="solar-system" id="solarSystem">
+                <!-- 3D太阳系将在这里渲染 -->
+            </div>
+        </div>
+        
+
+        
+
+         
+         <!-- 太空粒子容器 -->
+         <div class="space-particles" id="spaceParticles"></div>
+         
+         <!-- 星座覆盖层 -->
+         <div class="constellation-overlay" id="constellationOverlay"></div>
+         
+         <!-- 星云效果 -->
+         <div class="nebula-effect" style="top: 20%; left: 10%;"></div>
+         <div class="nebula-effect" style="top: 60%; right: 15%; animation-delay: -5s;"></div>
+         <div class="nebula-effect" style="bottom: 30%; left: 70%; animation-delay: -3s;"></div>
+     </section>
+     <script>
+         // 太空视图数据 - 只保留太阳系
+         const spaceViews = {
+             'solar-system': {
+                 title: '太阳系',
+                 content: `太阳系是以太阳为中心，受其引力约束的天体系统。
+                 <br><br>
+                 <strong>组成部分：</strong><br>
+                 • 太阳（恒星）<br>
+                 • 八大行星<br>
+                 • 小行星带<br>
+                 • 彗星和流星<br>
+                 <br><br>
+                 <strong>形成历史：</strong><br>
+                 • 约46亿年前形成<br>
+                 • 由星云坍缩而成<br>
+                 • 太阳占系统总质量的99.86%`
+             }
+         };
+
+        let currentView = 'solar-system';
+        let spaceParticlesActive = false;
+
+        // 系统控制功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化星空背景
+            initStarField();
+            initSpaceParticles();
+            
+            // 旧版控制按钮已从界面移除，保留兼容处理但不再假设按钮一定存在。
+            const solarButton = document.querySelector('.solar-system-button');
+            const blackholeButton = document.querySelector('.blackhole-button');
+            if (solarButton) {
+                solarButton.style.opacity = '1';
+                solarButton.style.transform = 'scale(1.05)';
+            }
+            if (blackholeButton) {
+                blackholeButton.style.opacity = '0.7';
+                blackholeButton.style.transform = 'scale(1)';
+            }
+            
+
+        });
+
+        // 重置太阳系视图
+        // 当前场景状态
+        let currentScene = 'solar-system'; // 'solar-system' 或 'blackhole'
+        let isTransitioning = false; // 防止重复点击的锁定状态
+        
+        // 将currentScene暴露到全局，供3D场景使用
+        window.currentScene = currentScene;
+
+        // 初始化星空背景
+        function initStarField() {
+            const overlay = document.getElementById('constellationOverlay');
+            
+            // 如果overlay不存在，则跳过星空背景初始化（3D模式下不需要）
+            if (!overlay) {
+                console.log('3D模式下跳过2D星空背景初始化');
+                return;
+            }
+            
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                
+                // 随机星星大小
+                const size = Math.random() * 3 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                
+                overlay.appendChild(star);
+            }
+        }
+
+        // 优化的太空粒子系统
+        let spaceParticleSystem = {
+            container: null,
+            particles: [],
+            maxParticles: 30,
+            isActive: true,
+            animationId: null,
+            lastCreateTime: 0,
+            createInterval: 500
+        };
+        
+        function initSpaceParticles() {
+            spaceParticleSystem.container = document.getElementById('spaceParticles');
+            if (!spaceParticleSystem.container) return;
+            
+            startSpaceParticleAnimation();
+        }
+        
+        function startSpaceParticleAnimation() {
+            function animate(currentTime) {
+                if (!spaceParticleSystem.isActive) {
+                    return;
+                }
+                
+                if (currentTime - spaceParticleSystem.lastCreateTime > spaceParticleSystem.createInterval) {
+                    createOptimizedSpaceParticle();
+                    spaceParticleSystem.lastCreateTime = currentTime;
+                }
+                
+                cleanupSpaceParticles();
+                spaceParticleSystem.animationId = requestAnimationFrame(animate);
+            }
+            
+            spaceParticleSystem.animationId = requestAnimationFrame(animate);
+        }
+        
+        function createOptimizedSpaceParticle() {
+            if (spaceParticleSystem.particles.length >= spaceParticleSystem.maxParticles) {
+                return;
+            }
+            
+            const particle = document.createElement('div');
+            particle.className = 'space-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = '0s';
+            
+            spaceParticleSystem.container.appendChild(particle);
+            spaceParticleSystem.particles.push({
+                element: particle,
+                createdAt: Date.now(),
+                duration: 8000
+            });
+        }
+        
+        function cleanupSpaceParticles() {
+            const now = Date.now();
+            spaceParticleSystem.particles = spaceParticleSystem.particles.filter(particleData => {
+                const age = now - particleData.createdAt;
+                if (age > particleData.duration) {
+                    if (particleData.element.parentNode) {
+                        particleData.element.parentNode.removeChild(particleData.element);
+                    }
+                    return false;
+                }
+                return true;
+            });
+        }
+    </script>
+
+    <!-- 引入3D太阳系脚本 -->
+    <script src="scripts/astronomy-3d.js"></script>
+    
+    <!-- 初始化3D太阳系 -->
+    <script>
+        let solarSystem3D = null;
+        
+        // 将solarSystem3D设为全局变量，以便resetSolarSystem函数可以访问
+        window.solarSystem3D = null;
+        
+        // 在页面加载完成后初始化3D太阳系
+        document.addEventListener('DOMContentLoaded', function() {
+            // 延迟初始化，确保所有资源加载完成
+            setTimeout(() => {
+                try {
+                    solarSystem3D = new SolarSystem3D('solarSystem');
+                    window.solarSystem3D = solarSystem3D; // 同步到全局变量
+                    console.log('3D太阳系初始化成功');
+                    
+                    // 监听天体选择事件
+                    document.addEventListener('celestialSelected', function(event) {
+                        const celestialName = event.detail.name;
+                        console.log('选择了天体:', celestialName);
+                    });
+                    
+                } catch (error) {
+                    console.error('3D太阳系初始化失败:', error);
+                }
+            }, 500);
+        });
+        
+        // 清理函数
+        window.addEventListener('beforeunload', function() {
+            if (solarSystem3D) {
+                solarSystem3D.destroy();
+            }
+        });
+    </script>
+
+    <!-- 引入主脚本 -->
+    <script src="script.js"></script>
+</body>
+</html>
+

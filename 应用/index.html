@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全息智能教育云 - AI+沉浸式教育的未来</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="基于全息投影和AI技术的沉浸式智能教育平台，提供个性化学习体验和智能内容推荐">
+    <meta name="keywords" content="全息教育,智能教育,AI教育,沉浸式学习,个性化教育,教育科技">
+    <meta name="author" content="全息智能教育云团队">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="msapplication-TileColor" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="智能教育云">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='192' height='192' fill='url(%23grad)' rx='24'/%3E%3Ctext x='96' y='120' text-anchor='middle' fill='white' font-size='80' font-family='Arial, sans-serif'%3E🌟%3C/text%3E%3C/svg%3E">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='48' height='48' fill='url(%23grad)' rx='6'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='20' font-family='Arial, sans-serif'%3E🌟%3C/text%3E%3C/svg%3E">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <!-- 外部字体与图标CDN在当前环境无法访问，注释以避免控制台报错 -->
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"> -->
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+</head>
+<body>
+    <!-- 动态背景粒子系统 -->
+    <div class="particles-container"></div>
+    
+    <!-- 科技感背景元素 -->
+    <div class="tech-grid-bg"></div>
+    <div class="data-stream"></div>
+    
+    <!-- 浮动卡片系统 -->
+    <div class="floating-cards">
+        <!-- 浮动卡片将通过JavaScript动态生成 -->
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <img src="images/logo.svg" alt="HIEC Logo" class="logo-img">
+                全息智能教育云
+            </a>
+            <ul class="nav-links">
+                <li><a href="#home" class="nav-link active">首页</a></li>
+                <li><a href="features.html" class="nav-link">功能特性</a></li>
+                <li><a href="scenarios.html" class="nav-link">应用场景</a></li>
+                <li><a href="architecture.html" class="nav-link">技术架构</a></li>
+                <li><a href="resources.html" class="nav-link">项目资源</a></li>
+                <li><a href="roadmap.html" class="nav-link">发展路线图</a></li>
+                <li><a href="team.html" class="nav-link">团队介绍</a></li>
+                <li><a href="contact.html" class="nav-link">联系我们</a></li>
+            </ul>
+            <div class="mobile-menu-toggle">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </div>
+        </div>
+        <div class="mobile-nav-menu">
+            <ul class="mobile-nav-links">
+                <li><a href="#home">首页</a></li>
+                <li><a href="features.html">功能特性</a></li>
+                <li><a href="scenarios.html">应用场景</a></li>
+                <li><a href="architecture.html">技术架构</a></li>
+                <li><a href="resources.html">项目资源</a></li>
+                <li><a href="roadmap.html">发展路线图</a></li>
+                <li><a href="team.html">团队介绍</a></li>
+                <li><a href="contact.html">联系我们</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="main-content">
+        <!-- 英雄区域 -->
+        <section class="hero" id="home">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">未来已来</h1>
+                    <p class="hero-subtitle">AI · 沉浸 · 无界</p>
+                </div>
+            </div>
+            
+            <!-- 炫酷滚动提示动画 -->
+            <div class="scroll-indicator">
+                <div class="scroll-arrow"></div>
+                <span class="scroll-text">向下探索</span>
+            </div>
+        </section>
+
+        <!-- 核心功能模块 -->
+        <section class="tech-section">
+            <div class="container">
+                <h2 class="section-title">核心</h2>
+                <div class="features-grid tech-grid">
+                    <div class="feature-card glow-border pulse-glow" onclick="navigateToFeature('ai')" data-feature="ai">
+                        <i class="feature-icon fas fa-robot"></i>
+                        <h3 class="feature-title">AI个性化推荐引擎</h3>
+                        <p class="feature-desc">智能分析学习行为，推荐最适合的学习路径</p>
+                        <div class="feature-arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                    
+                    <div class="feature-card glow-border" onclick="navigateToFeature('holographic')" data-feature="holographic">
+                        <i class="feature-icon fas fa-cube"></i>
+                        <h3 class="feature-title">全息显示技术</h3>
+                        <p class="feature-desc">8K分辨率全息投影，沉浸式3D学习体验</p>
+                        <div class="feature-arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                    
+                    <div class="feature-card" onclick="navigateToFeature('assessment')" data-feature="assessment">
+                        <i class="feature-icon fas fa-chart-line"></i>
+                        <h3 class="feature-title">智能评估系统</h3>
+                        <p class="feature-desc">多维度学习数据分析，精准能力诊断</p>
+                        <div class="feature-arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                    
+                    <div class="feature-card" onclick="navigateToFeature('collaboration')" data-feature="collaboration">
+                        <i class="feature-icon fas fa-network-wired"></i>
+                        <h3 class="feature-title">实时协作学习</h3>
+                        <p class="feature-desc">多人同步学习，全球知识共享平台</p>
+                        <div class="feature-arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 应用场景模块 -->
+        <section class="tech-section">
+            <div class="container">
+                <h2 class="section-title">场景</h2>
+                <div class="scenarios-grid tech-grid">
+                    <div class="scenario-card" onclick="window.location.href='anatomy.html'" data-scenario="anatomy">
+                        <i class="scenario-icon fas fa-user-md"></i>
+                        <h3 class="scenario-title">解剖学教学</h3>
+                        <p class="scenario-desc">3D人体结构与器官系统全息展示</p>
+                        <div class="scenario-arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                    
+                    <div class="scenario-card" onclick="window.location.href='chemistry.html'" data-scenario="chemistry">
+                        <i class="scenario-icon fas fa-atom"></i>
+                        <h3 class="scenario-title">化学分子结构</h3>
+                        <p class="scenario-desc">分子模型与化学反应可视化</p>
+                        <div class="scenario-arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                    
+                    <div class="scenario-card" onclick="window.location.href='history.html'" data-scenario="history">
+                        <i class="scenario-icon fas fa-landmark"></i>
+                        <h3 class="scenario-title">历史场景重现</h3>
+                        <p class="scenario-desc">古代文明与历史事件沉浸体验</p>
+                        <div class="scenario-arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                    
+                    <div class="scenario-card" onclick="window.location.href='astronomy.html'" data-scenario="astronomy">
+                        <i class="scenario-icon fas fa-rocket"></i>
+                        <h3 class="scenario-title">天体物理演示</h3>
+                        <p class="scenario-desc">宇宙星系与天体现象探索</p>
+                        <div class="scenario-arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技术架构预览 -->
+        <section class="tech-section">
+            <div class="container">
+                <div class="architecture-preview" onclick="window.location.href='architecture.html'">
+                    <h2 class="architecture-title">架构</h2>
+                    <p>探索技术核心</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据统计模块 -->
+        <section class="tech-section">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">10K+</div>
+                        <div class="stat-label">并发用户</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-number">20ms</div>
+                        <div class="stat-label">响应时间</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-number">99.9%</div>
+                        <div class="stat-label">可用性</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-number">95%</div>
+                        <div class="stat-label">AI准确率</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA区域 -->
+        <section class="cta-section">
+            <div class="container">
+                <h2>开启智能教育之旅</h2>
+                <p>体验AI+沉浸式教育的无限可能</p>
+                <div class="cta-buttons">
+                    <a href="features.html" class="cta-button primary">
+                        <i class="fas fa-rocket"></i>
+                        探索功能
+                    </a>
+                    <a href="contact.html" class="cta-button secondary">
+                        <i class="fas fa-envelope"></i>
+                        联系我们
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 全息智能教育云. 重新定义未来教育.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript文件 -->
+    <script src="script.js"></script>
+</body>
+</html>
+

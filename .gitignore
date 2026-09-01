@@ -1,0 +1,5 @@
+应用/node_modules/
+应用/.env
+应用/.vercel/
+应用/.vercel-cli-data/
+应用/*.log

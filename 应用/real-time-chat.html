@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时聊天 - 全息智能教育云</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <style>
+        .chat-container {
+            display: flex;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .chat-sidebar {
+            width: 280px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .room-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .room-avatar {
+            width: 50px;
+            height: 50px;
+            background: #3498db;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .room-details h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+        }
+        
+        .room-details p {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .room-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .online-users {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .users-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .user-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .user-status {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 0, 0, 0.3);
+        }
+        
+        .status-online { background: #2ecc71; }
+        .status-away { background: #f39c12; }
+        .status-busy { background: #e74c3c; }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+        
+        .user-role {
+            font-size: 10px;
+            opacity: 0.7;
+        }
+        
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chat-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+        
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .messages-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 80%;
+        }
+        
+        .message.own {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .message-content {
+            flex: 1;
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+        
+        .message-author {
+            font-size: 13px;
+            font-weight: bold;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+        
+        .message-text {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .message.own .message-text {
+            background: #3498db;
+        }
+        
+        .message-file {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .message-file:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: #e74c3c;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+        
+        .file-size {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+        
+        .system-message {
+            align-self: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0.8;
+            margin: 10px 0;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+        
+        .input-area {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .input-tools {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .tool-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .message-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 20px;
+            padding: 12px 20px;
+            color: white;
+            font-size: 14px;
+            resize: none;
+            min-height: 20px;
+            max-height: 100px;
+        }
+        
+        .message-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            background: #3498db;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .send-btn:hover {
+            background: #2980b9;
+            transform: scale(1.1);
+        }
+        
+        .send-btn:disabled {
+            background: rgba(255, 255, 255, 0.2);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .emoji-picker {
+            position: absolute;
+            bottom: 70px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            display: none;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .emoji-item {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        
+        .emoji-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        @media (max-width: 700px) {
+            html,
+            body {
+                height: 100%;
+                overflow: hidden;
+            }
+
+            .chat-container {
+                height: 100dvh;
+                min-height: 100vh;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .chat-sidebar {
+                width: 100%;
+                height: 142px;
+                flex: 0 0 142px;
+                overflow: hidden;
+            }
+
+            .sidebar-header {
+                padding: 10px 16px;
+            }
+
+            .room-info { margin-bottom: 8px; }
+            .room-avatar { width: 38px; height: 38px; font-size: 16px; }
+            .room-stats { gap: 12px; }
+
+            .online-users {
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: 8px 16px 12px;
+            }
+
+            .users-title { display: none; }
+            .user-list {
+                flex-direction: row;
+                width: max-content;
+                gap: 8px;
+            }
+
+            .user-item {
+                width: 112px;
+                flex: 0 0 112px;
+                padding: 6px;
+            }
+
+            .main-chat {
+                width: 100%;
+                min-width: 0;
+                min-height: 0;
+            }
+
+            .chat-header {
+                padding: 10px 12px;
+                gap: 8px;
+            }
+
+            .chat-actions { gap: 5px; }
+            .action-btn { padding: 7px 9px; }
+            .messages-area { min-width: 0; padding: 12px; gap: 10px; }
+            .message { max-width: 92%; }
+            .input-area { padding: 10px 12px; }
+            .input-container { gap: 6px; }
+            .input-tools { gap: 4px; }
+            .tool-btn { width: 32px; height: 32px; }
+            .message-input { padding: 9px 12px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- 侧边栏 -->
+        <div class="chat-sidebar">
+            <!-- 房间信息 -->
+            <div class="sidebar-header">
+                <div class="room-info">
+                    <div class="room-avatar">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="room-details">
+                        <h3>生物课讨论组</h3>
+                        <p>细胞结构与功能</p>
+                    </div>
+                </div>
+                <div class="room-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-users"></i>
+                        <span>12 人在线</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-comments"></i>
+                        <span>156 消息</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 在线用户 -->
+            <div class="online-users">
+                <div class="users-title">
+                    <i class="fas fa-circle" style="color: #2ecc71; font-size: 8px;"></i>
+                    在线成员 (12)
+                </div>
+                <div class="user-list">
+                    <div class="user-item">
+                        <div class="user-avatar" style="background: #3498db;">
+                            张
+                            <div class="user-status status-online"></div>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">张老师</div>
+                            <div class="user-role">授课教师</div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-item">
+                        <div class="user-avatar" style="background: #e74c3c;">
+                            李
+                            <div class="user-status status-online"></div>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">李助教</div>
+                            <div class="user-role">助教</div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-item">
+                        <div class="user-avatar" style="background: #2ecc71;">
+                            王
+                            <div class="user-status status-online"></div>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">王同学</div>
+                            <div class="user-role">学生</div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-item">
+                        <div class="user-avatar" style="background: #f39c12;">
+                            赵
+                            <div class="user-status status-away"></div>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">赵同学</div>
+                            <div class="user-role">学生</div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-item">
+                        <div class="user-avatar" style="background: #9b59b6;">
+                            刘
+                            <div class="user-status status-online"></div>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">刘同学</div>
+                            <div class="user-role">学生</div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-item">
+                        <div class="user-avatar" style="background: #1abc9c;">
+                            陈
+                            <div class="user-status status-busy"></div>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">陈同学</div>
+                            <div class="user-role">学生</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 主聊天区 -->
+        <div class="main-chat">
+            <!-- 聊天头部 -->
+            <div class="chat-header">
+                <div class="chat-title">
+                    <i class="fas fa-comments"></i>
+                    <span>实时讨论</span>
+                </div>
+                <div class="chat-actions">
+                    <button class="action-btn" title="搜索消息">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="action-btn" title="通话">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button class="action-btn" title="视频通话">
+                        <i class="fas fa-video"></i>
+                    </button>
+                    <button class="action-btn" title="屏幕共享">
+                        <i class="fas fa-desktop"></i>
+                    </button>
+                    <button class="action-btn" title="设置">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 消息区域 -->
+            <div class="messages-area" id="messagesArea">
+                <div class="system-message">
+                    <i class="fas fa-info-circle"></i>
+                    张老师创建了讨论组 "细胞结构与功能"
+                </div>
+                
+                <div class="message">
+                    <div class="message-avatar" style="background: #3498db;">张</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">张老师</span>
+                            <span class="message-time">14:30</span>
+                        </div>
+                        <div class="message-text">
+                            大家好！今天我们来讨论细胞的基本结构。请大家先看一下课件中的细胞图，有什么问题可以随时提出。
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="message">
+                    <div class="message-avatar" style="background: #2ecc71;">王</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">王同学</span>
+                            <span class="message-time">14:32</span>
+                        </div>
+                        <div class="message-text">
+                            老师，细胞膜和细胞壁有什么区别吗？
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="message">
+                    <div class="message-avatar" style="background: #3498db;">张</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">张老师</span>
+                            <span class="message-time">14:33</span>
+                        </div>
+                        <div class="message-text">
+                            很好的问题！细胞膜是所有细胞都有的，主要控制物质进出。而细胞壁只有植物细胞才有，起支撑和保护作用。
+                        </div>
+                        <div class="message-file">
+                            <div class="file-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="file-info">
+                                <div class="file-name">细胞结构对比图.pdf</div>
+                                <div class="file-size">2.3 MB</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="message own">
+                    <div class="message-avatar" style="background: #e74c3c;">我</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">我</span>
+                            <span class="message-time">14:35</span>
+                        </div>
+                        <div class="message-text">
+                            谢谢老师的解答！那线粒体在细胞中的作用是什么呢？
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="message">
+                    <div class="message-avatar" style="background: #f39c12;">赵</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">赵同学</span>
+                            <span class="message-time">14:36</span>
+                        </div>
+                        <div class="message-text">
+                            线粒体是细胞的"能量工厂"，负责产生ATP！😊
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="system-message">
+                    <i class="fas fa-user-plus"></i>
+                    刘同学加入了讨论
+                </div>
+                
+                <div class="typing-indicator">
+                    <span>张老师正在输入</span>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 输入区域 -->
+            <div class="input-area">
+                <div class="input-container">
+                    <div class="input-tools">
+                        <button class="tool-btn" title="表情" onclick="toggleEmojiPicker()">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <button class="tool-btn" title="文件">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <button class="tool-btn" title="图片">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <button class="tool-btn" title="语音">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
+                    <textarea class="message-input" id="messageInput" placeholder="输入消息..." rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 表情选择器 -->
+        <div class="emoji-picker" id="emojiPicker">
+            <div class="emoji-item" onclick="insertEmoji('😊')">😊</div>
+            <div class="emoji-item" onclick="insertEmoji('😂')">😂</div>
+            <div class="emoji-item" onclick="insertEmoji('🤔')">🤔</div>
+            <div class="emoji-item" onclick="insertEmoji('👍')">👍</div>
+            <div class="emoji-item" onclick="insertEmoji('❤️')">❤️</div>
+            <div class="emoji-item" onclick="insertEmoji('🎉')">🎉</div>
+            <div class="emoji-item" onclick="insertEmoji('📚')">📚</div>
+            <div class="emoji-item" onclick="insertEmoji('🔬')">🔬</div>
+            <div class="emoji-item" onclick="insertEmoji('💡')">💡</div>
+            <div class="emoji-item" onclick="insertEmoji('✨')">✨</div>
+            <div class="emoji-item" onclick="insertEmoji('🌟')">🌟</div>
+            <div class="emoji-item" onclick="insertEmoji('🚀')">🚀</div>
+            <div class="emoji-item" onclick="insertEmoji('🎯')">🎯</div>
+            <div class="emoji-item" onclick="insertEmoji('🏆')">🏆</div>
+            <div class="emoji-item" onclick="insertEmoji('🔥')">🔥</div>
+            <div class="emoji-item" onclick="insertEmoji('⭐')">⭐</div>
+        </div>
+    </div>
+
+    <script>
+        // 发送消息功能
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (message) {
+                const messagesArea = document.getElementById('messagesArea');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message own';
+                
+                const currentTime = new Date().toLocaleTimeString('zh-CN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.style.background = '#e74c3c';
+                avatar.textContent = '我';
+                const content = document.createElement('div');
+                content.className = 'message-content';
+                const header = document.createElement('div');
+                header.className = 'message-header';
+                const author = document.createElement('span');
+                author.className = 'message-author';
+                author.textContent = '我';
+                const time = document.createElement('span');
+                time.className = 'message-time';
+                time.textContent = currentTime;
+                header.append(author, time);
+                const messageText = document.createElement('div');
+                messageText.className = 'message-text';
+                messageText.textContent = message;
+                content.append(header, messageText);
+                messageDiv.append(avatar, content);
+                
+                // 移除输入提示
+                const typingIndicator = document.querySelector('.typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+                
+                messagesArea.appendChild(messageDiv);
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+                input.value = '';
+                adjustTextareaHeight();
+            }
+        }
+
+        // 回车发送消息
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // 自动调整输入框高度
+        function adjustTextareaHeight() {
+            const textarea = document.getElementById('messageInput');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+        }
+
+        document.getElementById('messageInput').addEventListener('input', adjustTextareaHeight);
+
+        // 表情选择器
+        function toggleEmojiPicker() {
+            const picker = document.getElementById('emojiPicker');
+            picker.style.display = picker.style.display === 'grid' ? 'none' : 'grid';
+        }
+
+        function insertEmoji(emoji) {
+            const input = document.getElementById('messageInput');
+            input.value += emoji;
+            input.focus();
+            document.getElementById('emojiPicker').style.display = 'none';
+        }
+
+        // 点击其他地方关闭表情选择器
+        document.addEventListener('click', function(e) {
+            const picker = document.getElementById('emojiPicker');
+            const emojiBtn = document.querySelector('.tool-btn');
+            if (!picker.contains(e.target) && !emojiBtn.contains(e.target)) {
+                picker.style.display = 'none';
+            }
+        });
+
+        // 模拟接收消息
+        function simulateIncomingMessage() {
+            const messages = [
+                { author: '张老师', avatar: '#3498db', text: '大家对今天的内容还有什么疑问吗？' },
+                { author: '李助教', avatar: '#e74c3c', text: '我刚上传了一些补充资料到群文件' },
+                { author: '王同学', avatar: '#2ecc71', text: '老师，下节课我们学什么？' },
+                { author: '刘同学', avatar: '#9b59b6', text: '这节课收获很大！谢谢老师' }
+            ];
+            
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const messagesArea = document.getElementById('messagesArea');
+            
+            // 移除输入提示
+            const typingIndicator = document.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            const currentTime = new Date().toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.style.background = randomMessage.avatar;
+            avatar.textContent = randomMessage.author.charAt(0);
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            const header = document.createElement('div');
+            header.className = 'message-header';
+            const author = document.createElement('span');
+            author.className = 'message-author';
+            author.textContent = randomMessage.author;
+            const time = document.createElement('span');
+            time.className = 'message-time';
+            time.textContent = currentTime;
+            header.append(author, time);
+            const messageText = document.createElement('div');
+            messageText.className = 'message-text';
+            messageText.textContent = randomMessage.text;
+            content.append(header, messageText);
+            messageDiv.append(avatar, content);
+            
+            messagesArea.appendChild(messageDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        // 每15秒模拟一条新消息
+        setInterval(simulateIncomingMessage, 15000);
+
+        // 模拟用户状态变化
+        function updateUserStatus() {
+            const users = document.querySelectorAll('.user-status');
+            users.forEach(status => {
+                const statuses = ['status-online', 'status-away', 'status-busy'];
+                const currentStatus = statuses.find(s => status.classList.contains(s));
+                const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                
+                if (Math.random() < 0.3) { // 30% 概率改变状态
+                    status.classList.remove(currentStatus);
+                    status.classList.add(newStatus);
+                }
+            });
+        }
+
+        // 每30秒更新用户状态
+        setInterval(updateUserStatus, 30000);
+
+        // 文件上传模拟
+        document.querySelector('.tool-btn[title="文件"]').addEventListener('click', function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    alert(`文件 "${file.name}" 上传成功！\n\n在实际应用中，这里会将文件上传到服务器并在聊天中显示。`);
+                }
+            };
+            input.click();
+        });
+
+        // 图片上传模拟
+        document.querySelector('.tool-btn[title="图片"]').addEventListener('click', function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    alert(`图片 "${file.name}" 上传成功！\n\n在实际应用中，这里会将图片上传到服务器并在聊天中显示。`);
+                }
+            };
+            input.click();
+        });
+
+        // 语音录制模拟
+        document.querySelector('.tool-btn[title="语音"]').addEventListener('click', function() {
+            alert('正在启动语音录制功能...\n\n在实际应用中，这里会调用浏览器的 MediaRecorder API 来录制语音消息。');
+        });
+    </script>
+</body>
+</html>

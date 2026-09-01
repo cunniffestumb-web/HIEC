@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>共享白板 - 全息智能教育云</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <style>
+        .whiteboard-container {
+            display: flex;
+            height: 100vh;
+            background: #f5f5f5;
+        }
+        
+        .toolbar {
+            width: 80px;
+            background: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            gap: 15px;
+        }
+        
+        .tool-btn {
+            width: 50px;
+            height: 50px;
+            background: #34495e;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .tool-btn:hover, .tool-btn.active {
+            background: #3498db;
+            transform: scale(1.1);
+        }
+        
+        .whiteboard {
+            flex: 1;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #canvas {
+            cursor: crosshair;
+            border: 1px solid #ddd;
+        }
+        
+        .participants {
+            width: 250px;
+            background: white;
+            border-left: 1px solid #ddd;
+            padding: 20px;
+        }
+        
+        .participant-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+        }
+        
+        .participant-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .color-section {
+            margin: 10px 0;
+        }
+        
+        .color-toggle {
+            width: 50px;
+            height: 30px;
+            background: #34495e;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-bottom: 5px;
+        }
+        
+        .color-toggle:hover {
+            background: #3498db;
+        }
+        
+        .color-palette {
+            display: none;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-width: 60px;
+        }
+        
+        .color-palette.expanded {
+            display: flex;
+        }
+        
+        .color-btn {
+            width: 25px;
+            height: 25px;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .color-btn:hover {
+            transform: scale(1.2);
+        }
+        
+        .color-btn.active {
+            border-color: #333;
+            transform: scale(1.2);
+        }
+        
+        .current-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #000;
+            border: 2px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="whiteboard-container">
+        <!-- 工具栏 -->
+        <div class="toolbar">
+            <button class="tool-btn active" data-tool="pen" title="画笔">
+                <i class="fas fa-pen"></i>
+            </button>
+            <button class="tool-btn" data-tool="eraser" title="橡皮擦">
+                <i class="fas fa-eraser"></i>
+            </button>
+            <button class="tool-btn" data-tool="line" title="直线">
+                <i class="fas fa-minus"></i>
+            </button>
+            <button class="tool-btn" data-tool="rectangle" title="矩形">
+                <i class="fas fa-square"></i>
+            </button>
+            <button class="tool-btn" data-tool="circle" title="圆形">
+                <i class="fas fa-circle"></i>
+            </button>
+            <button class="tool-btn" data-tool="text" title="文字">
+                <i class="fas fa-font"></i>
+            </button>
+            <div class="color-section">
+                <button class="color-toggle" onclick="toggleColorPalette()" title="选择颜色">
+                    <div class="current-color" id="currentColor"></div>
+                </button>
+                <div class="color-palette" id="colorPalette">
+                    <div class="color-btn active" style="background: #000" data-color="#000"></div>
+                    <div class="color-btn" style="background: #f00" data-color="#f00"></div>
+                    <div class="color-btn" style="background: #0f0" data-color="#0f0"></div>
+                    <div class="color-btn" style="background: #00f" data-color="#00f"></div>
+                    <div class="color-btn" style="background: #ff0" data-color="#ff0"></div>
+                    <div class="color-btn" style="background: #f0f" data-color="#f0f"></div>
+                    <div class="color-btn" style="background: #0ff" data-color="#0ff"></div>
+                    <div class="color-btn" style="background: #fff" data-color="#fff"></div>
+                </div>
+            </div>
+            <button class="tool-btn" onclick="clearCanvas()" title="清空">
+                <i class="fas fa-trash"></i>
+            </button>
+            <button class="tool-btn" onclick="saveCanvas()" title="保存">
+                <i class="fas fa-save"></i>
+            </button>
+        </div>
+        
+        <!-- 白板区域 -->
+        <div class="whiteboard">
+            <canvas id="canvas" width="1200" height="800"></canvas>
+        </div>
+        
+        <!-- 参与者列表 -->
+        <div class="participants">
+            <h3>在线参与者 (4)</h3>
+            <div class="participant-item">
+                <div class="participant-avatar">张</div>
+                <div>
+                    <div>张老师</div>
+                    <small style="color: #666;">主持人</small>
+                </div>
+            </div>
+            <div class="participant-item">
+                <div class="participant-avatar">李</div>
+                <div>
+                    <div>李同学</div>
+                    <small style="color: #666;">正在绘制</small>
+                </div>
+            </div>
+            <div class="participant-item">
+                <div class="participant-avatar">王</div>
+                <div>
+                    <div>王同学</div>
+                    <small style="color: #666;">在线</small>
+                </div>
+            </div>
+            <div class="participant-item">
+                <div class="participant-avatar">赵</div>
+                <div>
+                    <div>赵同学</div>
+                    <small style="color: #666;">在线</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let currentTool = 'pen';
+        let currentColor = '#000';
+        let startX, startY;
+        let snapshot;
+
+        // 颜色选择器切换
+        function toggleColorPalette() {
+            const palette = document.getElementById('colorPalette');
+            palette.classList.toggle('expanded');
+        }
+
+        // 工具切换
+        document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.tool-btn.active').classList.remove('active');
+                btn.classList.add('active');
+                currentTool = btn.dataset.tool;
+                
+                // 根据工具改变鼠标样式
+                if (currentTool === 'eraser') {
+                    canvas.style.cursor = 'grab';
+                } else if (currentTool === 'text') {
+                    canvas.style.cursor = 'text';
+                } else {
+                    canvas.style.cursor = 'crosshair';
+                }
+            });
+        });
+
+        // 颜色切换
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.color-btn.active').classList.remove('active');
+                btn.classList.add('active');
+                currentColor = btn.dataset.color;
+                document.getElementById('currentColor').style.background = currentColor;
+            });
+        });
+
+        // 绘制功能
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+            
+            // 保存当前画布状态（用于形状绘制）
+            snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
+            if (currentTool === 'pen') {
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+            } else if (currentTool === 'text') {
+                addText(startX, startY);
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
+            
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            
+            if (currentTool === 'pen') {
+                ctx.strokeStyle = currentColor;
+                ctx.lineTo(currentX, currentY);
+                ctx.stroke();
+            } else if (currentTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(currentX, currentY, 10, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.globalCompositeOperation = 'source-over';
+            } else if (currentTool === 'line' || currentTool === 'rectangle' || currentTool === 'circle') {
+                // 恢复画布状态并绘制预览
+                ctx.putImageData(snapshot, 0, 0);
+                ctx.strokeStyle = currentColor;
+                
+                if (currentTool === 'line') {
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY);
+                    ctx.lineTo(currentX, currentY);
+                    ctx.stroke();
+                } else if (currentTool === 'rectangle') {
+                    ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+                } else if (currentTool === 'circle') {
+                    const radius = Math.sqrt(Math.pow(currentX - startX, 2) + Math.pow(currentY - startY, 2));
+                    ctx.beginPath();
+                    ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function addText(x, y) {
+            const text = prompt('请输入文字:');
+            if (text) {
+                ctx.font = '16px Arial';
+                ctx.fillStyle = currentColor;
+                ctx.fillText(text, x, y);
+            }
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function saveCanvas() {
+            const link = document.createElement('a');
+            link.download = 'whiteboard.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // 返回按钮
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                window.history.back();
+            }
+        });
+
+        // 初始化当前颜色显示
+        document.getElementById('currentColor').style.background = currentColor;
+    </script>
+</body>
+</html>

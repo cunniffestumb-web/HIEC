@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自然交互 - 未来场景设计</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <style>
+        .feature-detail-container {
+            background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: white;
+            text-decoration: none;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateX(-5px);
+        }
+        .feature-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px 50px;
+        }
+        .feature-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        .feature-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .interaction-types, .use-cases {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .interaction-card, .use-case-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .interaction-card:hover, .use-case-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .use-case-card {
+            background: rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        .tech-advantages {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .tech-advantage {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 8px 15px;
+            font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .demo-container {
+            position: relative;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 30px 0;
+        }
+        .demo-hand {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="white" d="M408 216c-22.1 0-40 17.9-40 40h-8v-32c0-22.1-17.9-40-40-40s-40 17.9-40 40v32h-8V48c0-22.1-17.9-40-40-40s-40 17.9-40 40v208h-8v-32c0-22.1-17.9-40-40-40s-40 17.9-40 40v32h-8v-32c0-22.1-17.9-40-40-40s-40 17.9-40 40v128c0 53 43 96 96 96h192c53 0 96-43 96-96v-32h8c22.1 0 40-17.9 40-40s-17.9-40-40-40zm8 72c0 35.3-28.7 64-64 64H160c-35.3 0-64-28.7-64-64v-32h8v32c0 30.9 25.1 56 56 56h192c30.9 0 56-25.1 56-56v-32h8v32z"/></svg>') no-repeat center center;
+            background-size: contain;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: transform 0.5s ease;
+        }
+        .demo-object {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            color: white;
+        }
+        .comparison-table th, .comparison-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .comparison-table th {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .comparison-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .highlight {
+            color: #4ecca3;
+            font-weight: bold;
+        }
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #4ecca3;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="feature-detail-container">
+        <a href="features.html" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            返回功能页面
+        </a>
+        <div class="feature-content">
+            <h1>自然交互</h1>
+            <p>直观无障碍的人机交互体验</p>
+            
+            <div class="feature-section">
+                <h2>技术概述</h2>
+                <p>自然交互技术整合了手势识别、眼动追踪和语音控制等多种交互方式，让用户能够以最接近现实世界的方式与虚拟环境进行交互。我们的系统采用先进的AI算法和传感器融合技术，实现了低延迟、高精度的人机交互体验。</p>
+                
+                <div class="tech-advantages">
+                    <div class="tech-advantage"><i class="fas fa-tachometer-alt"></i> 低延迟响应</div>
+                    <div class="tech-advantage"><i class="fas fa-universal-access"></i> 无障碍设计</div>
+                    <div class="tech-advantage"><i class="fas fa-brain"></i> AI辅助理解</div>
+                    <div class="tech-advantage"><i class="fas fa-user-graduate"></i> 学习曲线平缓</div>
+                    <div class="tech-advantage"><i class="fas fa-project-diagram"></i> 多模态融合</div>
+                </div>
+                
+                <div class="interaction-types">
+                    <div class="interaction-card">
+                        <div class="feature-icon"><i class="fas fa-hand-paper"></i></div>
+                        <h3>手势识别</h3>
+                        <p>支持30种以上常用手势，精确度达98%。采用深度学习算法，能够在不同光照条件下稳定工作，延迟低于10ms。支持自定义手势，适用于各种教学场景。</p>
+                    </div>
+                    <div class="interaction-card">
+                        <div class="feature-icon"><i class="fas fa-eye"></i></div>
+                        <h3>眼动追踪</h3>
+                        <p>精确追踪用户视线焦点，支持注视选择功能。采用红外成像技术，无需佩戴特殊设备。可用于分析学生注意力分布，优化教学内容展示。</p>
+                    </div>
+                    <div class="interaction-card">
+                        <div class="feature-icon"><i class="fas fa-microphone"></i></div>
+                        <h3>语音控制</h3>
+                        <p>多语言支持，噪声环境下识别率超过95%。采用自然语言处理技术，理解上下文语义，支持连续对话和复杂指令。适用于语言学习和口语练习。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-section">
+                <h2>交互方式对比</h2>
+                <p>相比传统的交互方式，自然交互技术在教育场景中具有显著优势：</p>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>交互方式</th>
+                            <th>学习成本</th>
+                            <th>沉浸感</th>
+                            <th>适用场景</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>传统键鼠</td>
+                            <td>中等</td>
+                            <td>低</td>
+                            <td>常规电脑操作</td>
+                        </tr>
+                        <tr>
+                            <td>触摸屏</td>
+                            <td>低</td>
+                            <td>中</td>
+                            <td>移动设备、互动展示</td>
+                        </tr>
+                        <tr>
+                            <td class="highlight">自然交互</td>
+                            <td class="highlight">极低</td>
+                            <td class="highlight">高</td>
+                            <td class="highlight">VR/AR教学、实验模拟</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="feature-section">
+                <h2>交互演示</h2>
+                <p>下面是一个简单的手势交互演示，尝试点击并拖动手形图标来操作虚拟对象：</p>
+                
+                <div class="demo-container" id="demo-container">
+                    <div class="demo-object" id="demo-object"></div>
+                    <div class="demo-hand" id="demo-hand"></div>
+                </div>
+            </div>
+            
+            <div class="feature-section">
+                <h2>教育应用场景</h2>
+                <p>自然交互技术在教育领域有广泛的应用场景，能够显著提升学习体验和效果。</p>
+                
+                <div class="use-cases">
+                    <div class="use-case-card">
+                        <div class="feature-icon"><i class="fas fa-flask"></i></div>
+                        <h3>虚拟实验室</h3>
+                        <p>学生可以用手势操作虚拟实验器材，进行物理、化学实验，无需担心安全问题。系统能够精确识别复杂操作，如倾倒、混合、加热等动作，提供真实的反馈。</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="feature-icon"><i class="fas fa-language"></i></div>
+                        <h3>语言学习</h3>
+                        <p>通过语音交互进行语言对话练习，系统能够识别发音错误并提供纠正。结合手势和表情识别，实现更自然的跨文化交流模拟，提高语言学习的趣味性和效果。</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="feature-icon"><i class="fas fa-cube"></i></div>
+                        <h3>3D建模</h3>
+                        <p>用手势直接在空间中创建3D模型，适用于艺术、设计和工程教育。系统支持精确的空间定位和形状识别，学生可以直观地表达创意，无需掌握复杂的建模软件。</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="feature-icon"><i class="fas fa-music"></i></div>
+                        <h3>音乐教育</h3>
+                        <p>通过手势模拟指挥或演奏乐器，系统能够识别节奏和力度变化，提供实时音频反馈。适用于音乐理论教学和演奏技巧训练，让音乐学习更加直观有趣。</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="feature-icon"><i class="fas fa-heartbeat"></i></div>
+                        <h3>医学培训</h3>
+                        <p>通过手势和眼动追踪技术，模拟医疗操作和手术过程。系统能够提供触觉反馈，增强训练真实感，帮助医学生掌握复杂的医疗技能，降低实际操作风险。</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="feature-icon"><i class="fas fa-users"></i></div>
+                        <h3>协作学习</h3>
+                        <p>多用户可以通过自然交互方式在同一虚拟空间中协作，共同完成项目或解决问题。系统支持手势、语音和表情的实时传输，营造身临其境的远程协作体验。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 简单的交互演示
+        document.addEventListener('DOMContentLoaded', function() {
+            const hand = document.getElementById('demo-hand');
+            const object = document.getElementById('demo-object');
+            const container = document.getElementById('demo-container');
+            
+            let isDragging = false;
+            let offsetX, offsetY;
+            
+            hand.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                hand.style.cursor = 'grabbing';
+                
+                const handRect = hand.getBoundingClientRect();
+                offsetX = e.clientX - handRect.left;
+                offsetY = e.clientY - handRect.top;
+                
+                // 手形图标靠近物体时，物体高亮显示
+                const handCenter = {
+                    x: handRect.left + handRect.width/2,
+                    y: handRect.top + handRect.height/2
+                };
+                
+                const objectRect = object.getBoundingClientRect();
+                const objectCenter = {
+                    x: objectRect.left + objectRect.width/2,
+                    y: objectRect.top + objectRect.height/2
+                };
+                
+                const distance = Math.sqrt(
+                    Math.pow(handCenter.x - objectCenter.x, 2) + 
+                    Math.pow(handCenter.y - objectCenter.y, 2)
+                );
+                
+                if (distance < 100) {
+                    object.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.8)';
+                }
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                const containerRect = container.getBoundingClientRect();
+                let x = e.clientX - containerRect.left - offsetX;
+                let y = e.clientY - containerRect.top - offsetY;
+                
+                // 限制在容器内
+                x = Math.max(0, Math.min(x, containerRect.width - hand.offsetWidth));
+                y = Math.max(0, Math.min(y, containerRect.height - hand.offsetHeight));
+                
+                hand.style.left = x + 'px';
+                hand.style.top = y + 'px';
+                
+                // 计算手与物体的距离
+                const handCenter = {
+                    x: x + hand.offsetWidth/2,
+                    y: y + hand.offsetHeight/2
+                };
+                
+                const objectRect = object.getBoundingClientRect();
+                const objectCenter = {
+                    x: objectRect.left - containerRect.left + objectRect.width/2,
+                    y: objectRect.top - containerRect.top + objectRect.height/2
+                };
+                
+                const distance = Math.sqrt(
+                    Math.pow(handCenter.x - objectCenter.x, 2) + 
+                    Math.pow(handCenter.y - objectCenter.y, 2)
+                );
+                
+                if (distance < 80) {
+                    object.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.8)';
+                    object.style.transform = `translate(calc(-50% + ${(handCenter.x - objectCenter.x) * 0.2}px), calc(-50% + ${(handCenter.y - objectCenter.y) * 0.2}px))`;
+                } else {
+                    object.style.boxShadow = 'none';
+                    object.style.transform = 'translate(-50%, -50%)';
+                }
+            });
+            
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+                hand.style.cursor = 'pointer';
+            });
+            
+            // 添加脉冲动画效果
+            hand.classList.add('pulse');
+        });
+    </script>
+</body>
+</html>

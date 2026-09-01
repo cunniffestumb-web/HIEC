@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D分子结构可视化 - 全息智能教育云</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f0f23">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <style>
+        html, body { height: 100%; overflow: hidden; }
+         .chemistry-page {
+             background: linear-gradient(135deg, #0a0f1a 0%, #1a2e3e 50%, #0f2a1a 100%);
+             min-height: 100vh;
+             overflow: hidden;
+             overscroll-behavior: none;
+             user-select: none;
+         }
+        
+        .chemistry-hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+            background: radial-gradient(ellipse at center, rgba(0,255,150,0.1) 0%, transparent 70%);
+        }
+        
+        .chemistry-3d-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .molecule-model {
+             position: relative;
+             width: 100vmin;
+             height: 100vmin;
+             transform-style: preserve-3d;
+             animation: none;
+             cursor: grab;
+             touch-action: none;
+             will-change: transform;
+             transform-origin: center center;
+             overflow: visible;
+         }
+        /* 放大到阈值后铺满整个页面，消除边界 */
+        .molecule-model.full-immersive {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+        }
+        .immersive-exit {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            display: none;
+            z-index: 1001;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+            backdrop-filter: blur(4px);
+        }
+        .molecule-model.full-immersive .immersive-exit {
+            display: inline-block;
+        }
+         .molecule-model.dragging { cursor: grabbing; }
+ 
+         @keyframes moleculeRotate {
+             0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+             33% { transform: rotateX(120deg) rotateY(120deg) rotateZ(0deg); }
+             66% { transform: rotateX(240deg) rotateY(240deg) rotateZ(120deg); }
+             100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
+         }
+        
+        .atom {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px currentColor;
+        }
+        
+        .atom:hover {
+            transform: scale(1.3);
+            box-shadow: 0 0 30px currentColor;
+        }
+        
+        .carbon {
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #333, #111);
+            color: #666;
+        }
+        
+        .hydrogen {
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #fff, #ccc);
+            color: #fff;
+        }
+        
+        .oxygen {
+            width: 35px;
+            height: 35px;
+            background: radial-gradient(circle, #ff4444, #cc0000);
+            color: #ff4444;
+        }
+        
+        .nitrogen {
+            width: 32px;
+            height: 32px;
+            background: radial-gradient(circle, #4444ff, #0000cc);
+            color: #4444ff;
+        }
+        
+        .bond {
+            position: absolute;
+            background: linear-gradient(90deg, #00ff96, #00d4ff);
+            height: 3px;
+            transform-origin: left center;
+            border-radius: 2px;
+            box-shadow: 0 0 10px #00ff96;
+        }
+        
+        .control-panel {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px 20px 30px;
+            border: 1px solid rgba(0,255,150,0.2);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .control-panel.collapsed { transform: translateY(-50%) translateX(110%); }
+        .control-panel .panel-toggle {
+            position: absolute;
+            left: -36px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px; height: 64px;
+            border-radius: 10px 0 0 10px;
+            background: linear-gradient(180deg, #00ff96, #00d4ff);
+            color: #00110b;
+            border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .molecule-toggle {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #00ff96, #00d4ff);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .molecule-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,255,150,0.4);
+        }
+        
+        .molecule-toggle.active {
+            background: linear-gradient(45deg, #06ffa5, #00d4ff);
+            box-shadow: 0 0 20px rgba(6,255,165,0.5);
+        }
+        
+        .info-panel {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px 20px 30px;
+            border: 1px solid rgba(0,255,150,0.2);
+            max-width: 300px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .info-panel.collapsed { transform: translateY(-50%) translateX(-110%); }
+        .info-panel .panel-toggle {
+            position: absolute;
+            right: -36px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px; height: 64px;
+            border-radius: 0 10px 10px 0;
+            background: linear-gradient(180deg, #00ff96, #00d4ff);
+            color: #00110b;
+            border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .info-title {
+            color: #00ff96;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .info-content {
+            color: rgba(255,255,255,0.8);
+            line-height: 1.6;
+        }
+        
+        .electron-cloud {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed rgba(0,255,150,0.3);
+            border-radius: 50%;
+            animation: electronOrbit 3s linear infinite;
+        }
+        
+        @keyframes electronOrbit {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .reaction-animation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .energy-wave {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 2px solid #00ff96;
+            border-radius: 50%;
+            animation: energyPulse 2s ease-out infinite;
+            box-shadow: 0 0 10px rgba(0,255,150,0.6);
+        }
+        
+        @keyframes energyPulse {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+        
+        /* 分子预设位置 */
+        .water-molecule .oxygen { top: 50%; left: 50%; }
+        .water-molecule .hydrogen:nth-child(2) { top: 30%; left: 30%; }
+        .water-molecule .hydrogen:nth-child(3) { top: 30%; left: 70%; }
+        
+        .methane-molecule .carbon { top: 50%; left: 50%; }
+        .methane-molecule .hydrogen:nth-child(2) { top: 20%; left: 50%; }
+        .methane-molecule .hydrogen:nth-child(3) { top: 80%; left: 50%; }
+        .methane-molecule .hydrogen:nth-child(4) { top: 50%; left: 20%; }
+        .methane-molecule .hydrogen:nth-child(5) { top: 50%; left: 80%; }
+
+        /* 右下角旋转指示器 */
+        .rotation-indicator { position: fixed; right: 16px; bottom: 16px; padding: 8px 10px; background: rgba(0,0,0,0.35); backdrop-filter: blur(6px); color:#e8f5ef; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); z-index: 1100; }
+        .rotation-indicator .mini-dial {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(0,255,150,0.5), rgba(0,212,255,0.15));
+            border: 1px solid rgba(0,255,150,0.3);
+            position: relative;
+        }
+        .rotation-indicator .mini-dial::after {
+            content: "";
+            position: absolute;
+            left: 50%; top: 50%;
+            width: 2px; height: 12px;
+            background: #00ff96;
+            transform-origin: 50% 90%;
+            transform: translate(-50%, -90%) rotate(0deg);
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(0,255,150,0.6);
+        }
+    </style>
+</head>
+<body class="chemistry-page">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="images/logo.svg" alt="HIEC Logo" class="logo-img">
+                全息智能教育云
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link">首页</a></li>
+                <li><a href="features.html" class="nav-link">功能特性</a></li>
+                <li><a href="scenarios.html" class="nav-link">应用场景</a></li>
+                <li><a href="architecture.html" class="nav-link">技术架构</a></li>
+                <li><a href="resources.html" class="nav-link">项目资源</a></li>
+                <li><a href="roadmap.html" class="nav-link">发展路线图</a></li>
+                <li><a href="team.html" class="nav-link">团队介绍</a></li>
+                <li><a href="contact.html" class="nav-link">联系我们</a></li>
+            </ul>
+            <div class="mobile-menu-toggle">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </div>
+        </div>
+        <div class="mobile-nav-menu">
+            <ul class="mobile-nav-links">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="features.html">功能特性</a></li>
+                <li><a href="scenarios.html">应用场景</a></li>
+                <li><a href="architecture.html">技术架构</a></li>
+                <li><a href="resources.html">项目资源</a></li>
+                <li><a href="roadmap.html">发展路线图</a></li>
+                <li><a href="team.html">团队介绍</a></li>
+                <li><a href="contact.html">联系我们</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 3D分子结构交互界面 -->
+    <section class="chemistry-hero">
+        <div class="chemistry-3d-container">
+            <!-- 3D分子模型 -->
+            <div class="molecule-model full-immersive" id="moleculeModel">
+                <!-- 水分子 -->
+                <div class="molecule-structure water-molecule" data-molecule="water" style="display: none;">
+                    <div class="atom oxygen" data-atom="oxygen"></div>
+                    <div class="atom hydrogen" data-atom="hydrogen"></div>
+                    <div class="atom hydrogen" data-atom="hydrogen"></div>
+                    <div class="bond" style="width: 80px; top: 45%; left: 45%; transform: rotate(45deg);"></div>
+                    <div class="bond" style="width: 80px; top: 45%; left: 55%; transform: rotate(-45deg);"></div>
+                    <div class="electron-cloud"></div>
+                </div>
+                
+                <!-- 甲烷分子 -->
+                <div class="molecule-structure methane-molecule" data-molecule="methane" style="display: block;">
+                    <div class="atom carbon" data-atom="carbon"></div>
+                    <div class="atom hydrogen" data-atom="hydrogen"></div>
+                    <div class="atom hydrogen" data-atom="hydrogen"></div>
+                    <div class="atom hydrogen" data-atom="hydrogen"></div>
+                    <div class="atom hydrogen" data-atom="hydrogen"></div>
+                    <div class="bond" style="width: 100px; top: 35%; left: 50%; transform: rotate(90deg);"></div>
+                    <div class="bond" style="width: 100px; top: 65%; left: 50%; transform: rotate(90deg);"></div>
+                    <div class="bond" style="width: 100px; top: 50%; left: 35%; transform: rotate(0deg);"></div>
+                    <div class="bond" style="width: 100px; top: 50%; left: 65%; transform: rotate(0deg);"></div>
+                </div>
+                
+                <!-- 咖啡因分子 -->
+                <div class="molecule-structure caffeine-molecule" data-molecule="caffeine" style="display: none;">
+                    <div class="atom carbon" data-atom="carbon"></div>
+                    <div class="atom carbon" data-atom="carbon"></div>
+                    <div class="atom nitrogen" data-atom="nitrogen"></div>
+                    <div class="atom oxygen" data-atom="oxygen"></div>
+                    <div class="bond" style="width: 120px; top: 40%; left: 40%; transform: rotate(0deg);"></div>
+                    <div class="bond" style="width: 80px; top: 50%; left: 45%; transform: rotate(45deg);"></div>
+                    <div class="bond" style="width: 100px; top: 30%; left: 50%; transform: rotate(90deg);"></div>
+                </div>
+                
+                <!-- 反应动画效果 -->
+                <div class="reaction-animation" id="reactionAnimation"></div>
+                <!-- 沉浸式退出按钮（仅在沉浸模式显示） -->
+                <button id="immersiveExit" class="immersive-exit" title="退出沉浸">退出沉浸</button>
+                <!-- 加载遮罩：在3D加载完成前显示 -->
+                <div id="chemLoading" class="chem-loading" style="display:none;" aria-live="polite" aria-busy="true">
+                    <div class="spinner" aria-hidden="true"></div>
+                    <div class="label">3D引擎加载中…</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 控制面板 -->
+        <div class="control-panel" id="controlPanel">
+            <button class="panel-toggle" id="toggleRight" title="展开/收起">
+                <i class="fas fa-angles-left"></i>
+            </button>
+            <h3 style="color: #00ff96; margin-bottom: 15px; text-align: center;">分子选择</h3>
+            <button class="molecule-toggle" data-target="water">
+                <i class="fas fa-tint"></i> 水分子 (H₂O)
+            </button>
+            <button class="molecule-toggle active" data-target="methane">
+                <i class="fas fa-fire"></i> 甲烷 (CH₄)
+            </button>
+            <button class="molecule-toggle" data-target="caffeine">
+                <i class="fas fa-coffee"></i> 咖啡因 (C₈H₁₀N₄O₂)
+            </button>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,255,150,0.2);">
+                <button class="molecule-toggle" id="reactionBtn">
+                    <i class="fas fa-bolt"></i> 反应动画
+                </button>
+                <button class="molecule-toggle" id="resetBtn">
+                    <i class="fas fa-undo"></i> 重置视图
+                </button>
+            </div>
+        </div>
+        
+        <!-- 信息面板 -->
+        <div class="info-panel" id="infoPanel">
+            <button class="panel-toggle" id="toggleLeft" title="展开/收起">
+                <i class="fas fa-angles-right"></i>
+            </button>
+            <div class="info-title" id="infoTitle">甲烷 (CH₄)</div>
+            <div class="info-content" id="infoContent">
+                甲烷是最简单的烷烃，由一个碳原子和四个氢原子组成。
+                <br><br>
+                <strong>分子特性：</strong><br>
+                • 分子量：16.043 g/mol<br>
+                • 四面体结构<br>
+                • 非极性分子<br>
+                • H-C-H 键角：109.5°
+                <br><br>
+                <strong>交互提示：</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>点击原子查看详细信息</li>
+                    <li>使用控制面板切换分子</li>
+                    <li>按住并拖动模型旋转视图</li>
+                    <li>W/A/S/D 平移模型（W上、S下、A左、D右）</li>
+                    <li>滚轮缩放视图</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 引导探究面板 -->
+        <section class="lesson-panel chemistry-lesson-panel" data-lesson-root aria-label="甲烷分子结构探究">
+            <div class="lesson-panel-header">
+                <div>
+                    <div class="lesson-kicker">当前课程</div>
+                    <strong>甲烷分子结构探究</strong>
+                </div>
+                <span class="lesson-status" data-lesson-status>尚未开始</span>
+            </div>
+            <div class="lesson-progress" aria-hidden="true"><div class="lesson-progress-bar" data-lesson-progress></div></div>
+            <div data-lesson-stage></div>
+            <div data-lesson-feedback></div>
+            <div class="lesson-live-state" id="chemistryLessonState">模型状态：准备开始</div>
+        </section>
+
+        <!-- 旋转指示器 -->
+        <div class="rotation-indicator" id="rotationIndicator" aria-live="polite">
+            <div class="indicator-header">
+                <button id="indicatorToggle" class="indicator-btn" title="切换指示器">指示：罗盘</button>
+                <div class="indicator-zoom" title="缩放指示器">
+                    <button id="indicatorZoomOut" class="indicator-btn" aria-label="减小指示器">-</button>
+                    <span id="indicatorScaleLabel">100%</span>
+                    <button id="indicatorZoomIn" class="indicator-btn" aria-label="增大指示器">+</button>
+                </div>
+            </div>
+            <div class="indicator-body">
+                <div class="mini-dial" id="miniDial"></div>
+                <canvas id="gimbalCanvas" width="90" height="90" style="display:none;"></canvas>
+            </div>
+            <div class="indicator-axes"><span id="rotX">X: 0°</span> | <span id="rotY">Y: 0°</span></div>
+        </div>
+    </section>
+
+    <!-- JavaScript交互功能 -->
+    <script>
+          // 分子信息数据
+          const moleculeInfo = {
+              water: {
+                  title: "水分子 (H₂O)",
+                  content: "水是生命的基础，由两个氢原子和一个氧原子组成。<br><br><strong>分子特性：</strong><br>• 分子量：18.015 g/mol<br>• 键角：104.5°<br>• 极性分子<br>• 氢键作用力强<br><br><strong>作用机制：</strong><br>• 阻断腺苷受体<br>• 提高多巴胺水平<br>• 增强注意力"
+              },
+              methane: {
+                  title: "甲烷 (CH₄)",
+                  content: "甲烷是最简单的烷烃，天然气的主要成分。<br><br><strong>分子特性：</strong><br>• 分子量：16.043 g/mol<br>• 四面体结构<br>• 非极性分子<br>• 键角：109.5°<br><br><strong>作用机制：</strong><br>• 阻断腺苷受体<br>• 提高多巴胺水平<br>• 增强注意力"
+              },
+              caffeine: {
+                  title: "咖啡因 (C₈H₁₀N₄O₂)",
+                  content: "咖啡因是一种天然兴奋剂，存在于咖啡、茶叶中。<br><br><strong>分子特性：</strong><br>• 分子量：194.19 g/mol<br>• 嘌呤生物碱<br>• 含氮杂环化合物<br>• 中枢神经兴奋剂<br><br><strong>作用机制：</strong><br>• 阻断腺苷受体<br>• 提高多巴胺水平<br>• 增强注意力"
+              }
+          };
+        
+          // 添加原子信息，供原子点击时展示
+          const atomInfo = {
+              hydrogen: {
+                  title: "氢原子 (H)",
+                  content: "最轻元素，常以 H–X 键形式存在于分子中。"
+              },
+              oxygen: {
+                  title: "氧原子 (O)",
+                  content: "高电负性元素，易形成极性键，参与氢键作用。"
+              },
+              carbon: {
+                  title: "碳原子 (C)",
+                  content: "有机化学的核心元素，可形成多种杂化轨道与结构。"
+              },
+              nitrogen: {
+                  title: "氮原子 (N)",
+                  content: "常见于含氮杂环与胺类基团，具孤对电子。"
+              }
+          };
+        
+          document.addEventListener('DOMContentLoaded', function() {
+  window.__forceImmersive = true;
+
+              const toggleButtons = document.querySelectorAll('.molecule-toggle[data-target]');
+              toggleButtons.forEach(function(btn){
+                  btn.addEventListener('click', function(){
+                      const target = this.getAttribute('data-target');
+                      document.querySelectorAll('.molecule-toggle').forEach(b => b.classList.remove('active'));
+          
+                       this.classList.add('active');
+                       
+                      // 若开启 3D，渲染对应分子；否则切回 2D
+                      if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup && typeof renderMolecule3D === 'function') {
+                          renderMolecule3D(target);
+                      } else {
+                          const molecules = document.querySelectorAll('.molecule-structure');
+                          molecules.forEach(mol => {
+                              mol.style.display = mol.getAttribute('data-molecule') === target ? 'block' : 'none';
+                          });
+                      }
+                      // 切换分子时清理2D的能量波
+                      const anim = document.getElementById('reactionAnimation');
+                      if (anim) anim.innerHTML = '';
+                      
+                      // 更新信息面板
+                       const info = moleculeInfo[target];
+                       if (info) {
+                           document.getElementById('infoTitle').textContent = info.title;
+                           document.getElementById('infoContent').innerHTML = info.content;
+                       }
+                       updateRotationIndicator();
+                   });
+               });
+          
+              // 原子点击事件
+              const atoms = document.querySelectorAll('.atom');
+              atoms.forEach(atom => {
+                  atom.addEventListener('click', function() {
+                      const atomType = this.getAttribute('data-atom');
+                      const info = atomInfo[atomType];
+                      
+                      if (info) {
+                          document.getElementById('infoTitle').textContent = info.title;
+                          document.getElementById('infoContent').innerHTML = info.content;
+                          
+                          // 添加点击效果
+                          this.style.transform = 'scale(1.5)';
+                          setTimeout(() => {
+                              this.style.transform = 'scale(1)';
+                          }, 300);
+                      }
+                  });
+              });
+          
+              // 初始化拖拽旋转
+              initMoleculeDrag();
+        
+             // 动态加载 Three 并初始化 3D（默认显示甲烷）
+             if (typeof loadThreeAndInit === 'function') {
+                 loadThreeAndInit('methane');
+             }
+
+             // 面板折叠按钮
+             document.getElementById('toggleRight').addEventListener('click', function(){
+                 document.getElementById('controlPanel').classList.toggle('collapsed');
+             });
+             document.getElementById('toggleLeft').addEventListener('click', function(){
+                 document.getElementById('infoPanel').classList.toggle('collapsed');
+             });
+
+             // 控制按钮：反应与重置
+             document.getElementById('reactionBtn').addEventListener('click', toggleReaction);
+             document.getElementById('resetBtn').addEventListener('click', resetMolecule);
+             const zoomOutBtn = document.getElementById('zoomOutViewBtn');
+             if (zoomOutBtn) zoomOutBtn.addEventListener('click', function(){
+                   if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup && typeof adjustZoom3D === 'function') {
+                       adjustZoom3D(100); // 3D：拉远镜头，视图缩小
+                   } else {
+                       adjustZoom2D(-100); // 2D：减小缩放，视图缩小
+                   }
+                   updateRotationIndicator();
+                   if (typeof applyImmersiveByState === 'function') applyImmersiveByState();
+               });
+        
+             // 滚轮缩放
+             const modelEl = document.getElementById('moleculeModel');
+             modelEl.addEventListener('wheel', (e) => {
+                 e.preventDefault();
+                 if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup && typeof adjustZoom3D === 'function') {
+                     adjustZoom3D(e.deltaY);
+                 } else {
+                     adjustZoom2D(e.deltaY);
+                 }
+                 updateRotationIndicator();
+                 // 根据缩放状态自动切换沉浸式铺满
+                 applyImmersiveByState();
+             }, { passive: false });
+             // 绑定沉浸式退出与 ESC 键，初始化时应用一次沉浸状态
+             const exitBtn = document.getElementById('immersiveExit');
+             if (exitBtn) exitBtn.addEventListener('click', () => exitImmersive());
+             document.addEventListener('keydown', (e) => { if (e.key === 'Escape') exitImmersive(); });
+             if (typeof applyImmersiveByState === 'function') applyImmersiveByState();
+             // 启动即进入沉浸模式
+             const modelRoot = document.getElementById('moleculeModel');
+             if (modelRoot) modelRoot.classList.add('full-immersive');
+             });
+        
+
+      
+          // 拖拽旋转实现（鼠标与触摸）
+          let isDragging = false;
+          let startX = 0, startY = 0;
+          let modelRotation = { x: 0, y: 0 };
+          let currentRotation = { x: 0, y: 0 };
+          let currentRotation3D = { x: 0, y: 0 };
+          let modelScale = 1;
+      
+          function updateModelTransform() {
+               const model = document.getElementById('moleculeModel');
+            // 若存在 Three 场景，则由 Three 渲染；否则应用2D变换
+            if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup && typeof renderThree === 'function') {
+                renderThree();
+            } else if (model) {
+                model.style.transform = `rotateX(${modelRotation.x}deg) rotateY(${modelRotation.y}deg) scale(${modelScale})`;
+            }
+            // 无论2D/3D都同步指示器
+            if (typeof updateRotationIndicator === 'function') updateRotationIndicator();
+           }
+      
+          function initMoleculeDrag() {
+              const model = document.getElementById('moleculeModel');
+              if (!model) return;
+      
+              const onDown = (x, y) => {
+                  isDragging = true;
+                  startX = x;
+                  startY = y;
+                  currentRotation.x = modelRotation.x;
+                  currentRotation.y = modelRotation.y;
+                  model.classList.add('dragging');
+                  // 在拖拽期间禁用文本选择
+                  document.body.style.userSelect = 'none';
+                 // Three 模式下记录当前旋转
+                 if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                     currentRotation3D.x = moleculeGroup.rotation.x;
+                     currentRotation3D.y = moleculeGroup.rotation.y;
+                 }
+              };
+      
+              const onMove = (x, y) => {
+                  if (!isDragging) return;
+                  const dx = x - startX;
+                  const dy = y - startY;
+                 // Three 模式：旋转 3D 组（不限制角度）
+                 if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                     const s3d = 0.005; // 弧度灵敏度
+                     moleculeGroup.rotation.y = currentRotation3D.y + dx * s3d;
+                     moleculeGroup.rotation.x = currentRotation3D.x - dy * s3d;
+                     if (typeof renderThree === 'function') {
+                         renderThree();
+                     }
+                 } else {
+                     const sensitivity = 0.3;
+                     modelRotation.y = currentRotation.y + dx * sensitivity;
+                     modelRotation.x = currentRotation.x - dy * sensitivity;
+                     updateModelTransform();
+                 }
+                 updateRotationIndicator();
+              };
+      
+              const onUp = () => {
+                  if (!isDragging) return;
+                  isDragging = false;
+                  model.classList.remove('dragging');
+                  document.body.style.userSelect = '';
+              };
+      
+              // 将按下范围扩大到整个文档：鼠标
+              document.addEventListener('mousedown', (e) => {
+                  // 右键忽略
+                  if (e.button !== 0) return;
+                  // 忽略交互区域（按钮、链接、输入框、面板、导航等），避免影响点击
+                  if (e.target && e.target.closest('.control-panel, .info-panel, nav, .mobile-nav-menu, a, button, input, select, textarea, label')) {
+                      return;
+                  }
+                  onDown(e.clientX, e.clientY);
+              });
+              document.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
+              document.addEventListener('mouseup', onUp);
+      
+              // 触摸事件：整页
+              document.addEventListener('touchstart', (e) => {
+                  if (e.touches.length !== 1) return;
+                  const origin = e.target;
+                  if (origin && origin.closest('.control-panel, .info-panel, nav, .mobile-nav-menu, a, button, input, select, textarea, label')) {
+                      return;
+                  }
+                  const t = e.touches[0];
+                  onDown(t.clientX, t.clientY);
+              }, { passive: true });
+              document.addEventListener('touchmove', (e) => {
+                  if (e.touches.length !== 1) return;
+                  const t = e.touches[0];
+                  onMove(t.clientX, t.clientY);
+              }, { passive: true });
+              document.addEventListener('touchend', onUp, { passive: true });
+              document.addEventListener('touchcancel', onUp, { passive: true });
+      
+              // 禁止默认拖拽
+              model.addEventListener('dragstart', (e) => e.preventDefault());
+      
+              // 关闭任何残留的自动旋转
+              model.style.animation = 'none';
+              updateModelTransform();
+          }
+      
+          // 反应动画功能
+          function build2DReactionWaves() {
+              const animation = document.getElementById('reactionAnimation');
+              if (!animation) return;
+              animation.innerHTML = '';
+              const model = document.getElementById('moleculeModel');
+              const activeMol = Array.from(model.querySelectorAll('.molecule-structure')).find(m => m.style.display !== 'none');
+              if (!activeMol) return;
+              const atoms = activeMol.querySelectorAll('.atom');
+              atoms.forEach((a, idx) => {
+                  const wave = document.createElement('div');
+                  wave.className = 'energy-wave';
+                  // 放慢速度
+                  wave.style.animationDuration = '4s';
+                  const rect = a.getBoundingClientRect();
+                  const modelRect = model.getBoundingClientRect();
+                  const cx = rect.left - modelRect.left + rect.width / 2;
+                  const cy = rect.top - modelRect.top + rect.height / 2;
+                  wave.style.left = (cx - 25) + 'px';
+                  wave.style.top = (cy - 25) + 'px';
+                  wave.style.animationDelay = (idx * 0.4) + 's';
+                  animation.appendChild(wave);
+              });
+          }
+
+          function toggleReaction() {
+              // 3D 模式：使用面向相机的精灵效果
+              if (typeof toggleReaction3D === 'function' && window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                  toggleReaction3D();
+                  return;
+              }
+              // 2D 模式：在每个原子中心生成能量波
+              const animation = document.getElementById('reactionAnimation');
+              if (!animation) return;
+              if (animation.childElementCount > 0) {
+                  animation.innerHTML = '';
+              } else {
+                  build2DReactionWaves();
+              }
+          }
+      
+          // 重置分子功能（保持当前选择，仅重置视图与缩放）
+          function resetMolecule() {
+              const model = document.getElementById('moleculeModel');
+              // Three 模式：重置旋转与相机
+              if (typeof resetView3D === 'function' && window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                  resetView3D();
+              } else if (model) {
+                  modelRotation = { x: 0, y: 0 };
+                  modelScale = 1;
+                  updateModelTransform();
+                  model.style.animation = 'none';
+              }
+              // 不再强制切回水分子，保持当前页面/选择
+              updateRotationIndicator();
+              // 重置时退出沉浸式
+              exitImmersive();
+          }
+
+          function adjustZoom2D(deltaY) {
+              const step = Math.exp(deltaY * 0.001);
+              modelScale = Math.min(3, Math.max(0.5, modelScale * step));
+              updateModelTransform();
+          }
+
+          // 沉浸式铺满：根据 2D/3D 缩放阈值自动进入/退出
+          const IMMERSIVE_SCALE_2D = 2.4;  // 2D：缩放>=2.4 进入沉浸
+          const IMMERSIVE_Z_3D = 3.2;      // 3D：相机Z<=3.2 进入沉浸
+      
+          function isImmersiveDesired() {
+              if (window.__forceImmersive) return true;
+              const el = document.getElementById('moleculeModel');
+              if (!el) return false;
+              if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup && window.__chem3d && typeof window.__chem3d.getZ === 'function') {
+                  const z = window.__chem3d.getZ();
+                  return typeof z === 'number' && z <= IMMERSIVE_Z_3D;
+              }
+              return modelScale >= IMMERSIVE_SCALE_2D;
+          }
+      
+          function applyImmersiveByState() {
+              const el = document.getElementById('moleculeModel');
+              if (!el) return;
+              const want = isImmersiveDesired();
+              el.classList.toggle('full-immersive', !!want);
+          }
+      
+          function exitImmersive() {
+              if (window.__forceImmersive) return; // 强制沉浸时忽略退出
+              const el = document.getElementById('moleculeModel');
+              if (!el) return;
+              el.classList.remove('full-immersive');
+          }
+      
+          // 旋转指示器更新
+          function updateRotationIndicator() {
+              const rxEl = document.getElementById('rotX');
+              const ryEl = document.getElementById('rotY');
+              const dial = document.getElementById('miniDial');
+              let rx = 0, ry = 0;
+              if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                  rx = moleculeGroup.rotation.x * 180 / Math.PI;
+                  ry = moleculeGroup.rotation.y * 180 / Math.PI;
+              } else {
+                  rx = modelRotation.x;
+                  ry = modelRotation.y;
+              }
+              // 规范到 [-180,180]
+              const norm = (a) => {
+                  a = ((a + 180) % 360 + 360) % 360 - 180;
+                  return Math.round(a);
+              };
+              rxEl.textContent = 'X: ' + norm(rx) + '°';
+              ryEl.textContent = 'Y: ' + norm(ry) + '°';
+              // 小表盘指针根据 Y 旋转
+              if (dial) {
+                  const deg = norm(ry);
+                  dial.style.setProperty('--dial-rot', deg + 'deg');
+                  // 通过直接更新伪元素需借助 class 切换，这里改为在子元素实现
+                  dial.style.position = 'relative';
+                  let needle = dial.querySelector('.needle');
+                  if (!needle) {
+                      needle = document.createElement('div');
+                      needle.className = 'needle';
+                      needle.style.cssText = 'position:absolute;left:50%;top:50%;width:2px;height:12px;background:#00ff96;transform-origin:50% 90%;border-radius:2px;box-shadow:0 0 8px rgba(0,255,150,0.6)';
+                      dial.appendChild(needle);
+                  }
+                  needle.style.transform = 'translate(-50%, -90%) rotate(' + deg + 'deg)';
+              }
+          }
+      </script>
+ 
+     <!-- 引入主脚本 -->
+     <script src="script.js"></script>
+     <!-- 3D 化学渲染脚本 -->
+     <script src="scripts/chemistry-3d.js"></script>
+<style>
+/***** 指示器样式增强 *****/
+.rotation-indicator { position: fixed; right: 16px; bottom: 16px; padding: 8px 10px; background: rgba(0,0,0,0.35); backdrop-filter: blur(6px); color:#e8f5ef; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); z-index: 1100; }
+.rotation-indicator .indicator-header { display:flex; align-items:center; justify-content: space-between; gap:8px; margin-bottom:6px; }
+.indicator-btn { background: rgba(0,255,150,0.14); border: 1px solid rgba(0,255,150,0.35); color:#cffff1; border-radius: 6px; padding: 2px 8px; font-size: 12px; cursor:pointer; }
+.indicator-btn:hover { background: rgba(0,255,150,0.25); }
+.indicator-zoom { display:none !important; align-items:center; gap:6px; }
+.indicator-body { display:flex; align-items:center; justify-content:center; }
+#miniDial { width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(0,255,150,0.18), rgba(0,255,150,0.04)); border:1px solid rgba(0,255,150,0.35); position: relative; }
+#miniDial .needle { position:absolute; left:50%; top:50%; width:2px; height:12px; background:#00ff96; transform-origin:50% 90%; border-radius:2px; box-shadow:0 0 8px rgba(0,255,150,0.6) }
+.indicator-axes { margin-top: 6px; text-align: center; font-size: 12px; color:#d4f7e9; }
+/* 加载遮罩样式 */
+.chem-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(0,0,0,0.18); backdrop-filter: blur(2px); color: #d7fff0; z-index: 1002; font-size: 14px; }
+.chem-loading .spinner { width: 14px; height: 14px; border: 2px solid rgba(0,255,150,0.25); border-top-color: #00ff96; border-radius: 50%; animation: chemSpin 0.9s linear infinite; }
+@keyframes chemSpin { to { transform: rotate(360deg); } }
+</style>
+<script>
+// --- 指示器模式切换与缩放 ---
+(function(){
+  const toggleBtn = document.getElementById('indicatorToggle');
+  const scaleLabel = document.getElementById('indicatorScaleLabel');
+  const zoomIn = document.getElementById('indicatorZoomIn');
+  const zoomOut = document.getElementById('indicatorZoomOut');
+  const dial = document.getElementById('miniDial');
+  const gimbal = document.getElementById('gimbalCanvas');
+  let mode = 'dial'; // 'dial' | 'gimbal'
+  let uiScale = 1.0;
+
+  function applyScale() {
+    // 固定右下角指示菜单尺寸，不允许缩放
+    uiScale = 1;
+    const wrap = document.getElementById('rotationIndicator');
+    if (wrap) {
+      wrap.style.transform = 'none';
+      wrap.style.transformOrigin = '';
+    }
+    if (scaleLabel) {
+      scaleLabel.textContent = '100%';
+    }
+  }
+
+  function drawGimbal(rxDeg, ryDeg) {
+    if (!gimbal) return;
+    const ctx = gimbal.getContext('2d');
+    const w = gimbal.width, h = gimbal.height; ctx.clearRect(0,0,w,h);
+    const cx = w/2, cy = h/2, R = Math.min(cx, cy)-6;
+    // base rings
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.strokeStyle = 'rgba(0,255,150,0.6)'; ctx.lineWidth = 2;
+    // outer ring (Yaw)
+    ctx.beginPath(); ctx.arc(0,0,R,0,Math.PI*2); ctx.stroke();
+    // middle ring (Pitch)
+    ctx.strokeStyle = 'rgba(0,255,150,0.35)'; ctx.beginPath(); ctx.arc(0,0,R-8,0,Math.PI*2); ctx.stroke();
+    // inner ring (Roll)
+    ctx.strokeStyle = 'rgba(0,255,150,0.25)'; ctx.beginPath(); ctx.arc(0,0,R-16,0,Math.PI*2); ctx.stroke();
+    // axis lines
+    ctx.strokeStyle = 'rgba(0,255,150,0.5)';
+    ctx.beginPath(); ctx.moveTo(-R,0); ctx.lineTo(R,0); ctx.moveTo(0,-R); ctx.lineTo(0,R); ctx.stroke();
+    // pointers based on rx/ry (approx: map ry->yaw, rx->pitch)
+    const yaw = ryDeg * Math.PI/180; const pitch = rxDeg * Math.PI/180;
+    ctx.strokeStyle = '#00ff96'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo((R-4)*Math.sin(yaw),(R-4)*-Math.cos(yaw)); ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,255,150,0.85)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo((R-12)*Math.sin(pitch),(R-12)*Math.cos(pitch)); ctx.stroke();
+    ctx.restore();
+  }
+
+  function updateIndicatorVisual(rx, ry){
+    if (mode === 'dial') {
+      dial.style.display = '';
+      gimbal.style.display = 'none';
+    } else {
+      dial.style.display = 'none';
+      gimbal.style.display = '';
+      drawGimbal(rx, ry);
+    }
+  }
+
+  toggleBtn?.addEventListener('click', () => {
+    mode = mode === 'dial' ? 'gimbal' : 'dial';
+    toggleBtn.textContent = '指示：' + (mode === 'dial' ? '罗盘' : '三环');
+    // 立即刷新
+    const rxText = document.getElementById('rotX')?.textContent || '0';
+    const ryText = document.getElementById('rotY')?.textContent || '0';
+    const rx = parseFloat(rxText.replace(/[^\-\d.]/g,'')) || 0;
+    const ry = parseFloat(ryText.replace(/[^\-\d.]/g,'')) || 0;
+    updateIndicatorVisual(rx, ry);
+  });
+  zoomIn?.addEventListener('click', ()=>{ uiScale *= 1.1; applyScale(); });
+  zoomOut?.addEventListener('click', ()=>{ uiScale /= 1.1; applyScale(); });
+
+  // 初始
+  applyScale();
+  // 将可视更新函数暴露，供外部旋转事件调用
+  window.__updateIndicatorVisual = updateIndicatorVisual;
+})();
+</script>
+<script src="scripts/lesson-flow.js"></script>
+<script>
+  window.HIECLesson.init({
+    id: 'chemistry-methane',
+    subject: '化学',
+    title: '甲烷分子结构探究',
+    goal: '观察甲烷的空间构型，理解四面体结构与 109.5° 键角之间的关系。',
+    duration: '5 分钟',
+    steps: [
+      {
+        title: '进入甲烷模型',
+        text: '先把视图切换到甲烷，确认中心碳原子和四个氢原子的相对位置。',
+        tip: '模型只用于教学观察，尺寸和距离经过可视化处理。',
+        actions: [{ action: 'focus-methane', label: '显示甲烷模型' }],
+      },
+      {
+        title: '从不同角度观察',
+        text: '拖动模型旋转视角，尝试从正面和侧面观察四个氢原子是否处在同一平面。',
+        tip: '如果只能看到两个氢原子，继续旋转模型再判断。',
+        actions: [{ action: 'show-angle', label: '显示键角线索' }],
+      },
+      {
+        title: '解释四面体结构',
+        text: '碳原子周围有四个成键方向。它们尽量彼此远离，形成近似正四面体构型。',
+        tip: '这一步关注“结构为什么这样排列”，不要只记住一个数字。',
+        actions: [{ action: 'show-geometry', label: '查看结构解释' }],
+      },
+      {
+        title: '准备知识检测',
+        text: '现在回到信息面板，复述分子式、中心原子和键角，再进入三道小测。',
+        tip: '完成检测后会生成本地学习报告，不需要登录或上传数据。',
+      },
+    ],
+    quiz: [
+      {
+        question: '甲烷分子的空间构型最接近哪一种？',
+        options: ['平面三角形', '正四面体', '直线形', '平面正方形'],
+        correct: 1,
+        explanation: '甲烷中心碳原子与四个氢原子形成近似正四面体构型。',
+      },
+      {
+        question: '甲烷中 H-C-H 键角约为多少？',
+        options: ['90°', '104.5°', '109.5°', '180°'],
+        correct: 2,
+        explanation: '正四面体构型的理想键角约为 109.5°。',
+      },
+      {
+        question: '观察 3D 模型时，最有助于理解空间结构的操作是？',
+        options: ['只看正面截图', '旋转模型比较不同视角', '关闭所有原子', '只改变页面颜色'],
+        correct: 1,
+        explanation: '旋转模型可以把空间关系从多个视角呈现出来。',
+      },
+    ],
+    report: percentage => percentage >= 80
+      ? '你已经掌握了甲烷的基本空间构型，可以继续比较水分子的键角。'
+      : '建议重新旋转模型，重点观察中心碳原子和四个氢原子的空间关系。',
+    onAction(action) {
+      const state = document.getElementById('chemistryLessonState');
+      if (action === 'focus-methane') {
+        document.querySelector('.molecule-toggle[data-target="methane"]')?.click();
+        if (state) state.textContent = '模型状态：已切换到甲烷';
+      }
+      if (action === 'show-angle') {
+        document.getElementById('infoPanel')?.classList.remove('collapsed');
+        document.getElementById('infoTitle').textContent = '观察线索：109.5°';
+        document.getElementById('infoContent').innerHTML = '四个 C-H 键方向指向四面体顶点。拖动模型，从不同视角观察任意两个 C-H 键之间的夹角。';
+        if (state) state.textContent = '模型状态：已显示键角观察线索';
+      }
+      if (action === 'show-geometry') {
+        document.getElementById('infoPanel')?.classList.remove('collapsed');
+        document.getElementById('infoTitle').textContent = '结构解释';
+        document.getElementById('infoContent').innerHTML = '中心碳原子的四个成键方向尽量分开，形成近似正四面体。正是这种空间排列，使 H-C-H 键角约为 109.5°。';
+        if (state) state.textContent = '模型状态：已查看四面体结构解释';
+      }
+    },
+    onStart() {
+      document.querySelector('.molecule-toggle[data-target="methane"]')?.click();
+    },
+    onReset() {
+      const state = document.getElementById('chemistryLessonState');
+      if (state) state.textContent = '模型状态：准备开始';
+    },
+  });
+</script>
+<script>
+// 钩住现有的 updateRotationIndicator，在更新文本和针之后，同步更新 gimbal
+(function(){
+  const orig = window.updateRotationIndicator;
+  window.updateRotationIndicator = function(){
+    if (typeof orig === 'function') orig();
+    const rxText = document.getElementById('rotX')?.textContent || '0';
+    const ryText = document.getElementById('rotY')?.textContent || '0';
+    const rx = parseFloat(rxText.replace(/[^\-\d.]/g,'')) || 0;
+    const ry = parseFloat(ryText.replace(/[^\-\d.]/g,'')) || 0;
+    if (typeof window.__updateIndicatorVisual === 'function') {
+      window.__updateIndicatorVisual(rx, ry);
+    }
+  }
+})();
+</script>
+</body>
+</html>

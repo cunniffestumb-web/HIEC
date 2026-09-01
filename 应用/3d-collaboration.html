@@ -1,0 +1,2639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D协作空间 - 全息智能教育云</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <style>
+        html, body { 
+            height: 100%; 
+            overflow: hidden; 
+            margin: 0;
+            padding: 0;
+        }
+        
+        .chemistry-page {
+            background: linear-gradient(135deg, #0a0f1a 0%, #1a2e3e 50%, #0f2a1a 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            overscroll-behavior: none;
+            user-select: none;
+        }
+        
+        .chemistry-hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+            background: radial-gradient(ellipse at center, rgba(0,255,150,0.1) 0%, transparent 70%);
+        }
+        
+        .chemistry-3d-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .molecule-model {
+            position: relative;
+            width: 100vmin;
+            height: 100vmin;
+            transform-style: preserve-3d;
+            animation: none;
+            cursor: grab;
+            touch-action: none;
+            will-change: transform;
+            transform-origin: center center;
+            overflow: visible;
+        }
+        
+        .molecule-model.full-immersive {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+        }
+        
+        .workspace-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-button {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+        
+        .control-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .exit-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 2000;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .exit-button:hover {
+            background: rgba(231, 76, 60, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .exit-button i {
+            font-size: 18px;
+        }
+        
+        .canvas-area {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+            overflow: hidden;
+            z-index: 1000;
+        }
+        
+        .three-d-scene {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            perspective: 1000px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .molecular-model {
+            width: 400px;
+            height: 400px;
+            position: relative;
+            transform-style: preserve-3d;
+            cursor: grab;
+            transition: transform 0.1s ease-out;
+        }
+        
+        .molecular-model.dragging {
+            cursor: grabbing;
+        }
+        
+        /* 甲烷分子样式 - 从chemistry.html提取 */
+        .methane-molecule .carbon { 
+            top: 50%; 
+            left: 50%; 
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(44, 62, 80, 0.4);
+        }
+        
+        .methane-molecule .hydrogen { 
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(231, 76, 60, 0.4);
+        }
+        
+        .methane-molecule .hydrogen:nth-child(2) { 
+            top: 20%; 
+            left: 50%; 
+            transform: translate(-50%, -50%) translateZ(100px);
+        }
+        .methane-molecule .hydrogen:nth-child(3) { 
+            top: 80%; 
+            left: 50%; 
+            transform: translate(-50%, -50%) translateZ(-100px);
+        }
+        .methane-molecule .hydrogen:nth-child(4) { 
+            top: 50%; 
+            left: 20%; 
+            transform: translate(-50%, -50%) translateZ(-100px);
+        }
+        .methane-molecule .hydrogen:nth-child(5) { 
+            top: 50%; 
+            left: 80%; 
+            transform: translate(-50%, -50%) translateZ(100px);
+        }
+
+        .atom {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        
+        .carbon {
+            width: 60px;
+            height: 60px;
+            background: #2c3e50;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .hydrogen {
+            width: 40px;
+            height: 40px;
+            background: #e74c3c;
+            font-size: 12px;
+        }
+        
+        .oxygen {
+            width: 50px;
+            height: 50px;
+            background: #3498db;
+            font-size: 12px;
+        }
+        
+        .bond {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+            height: 2px;
+            transform-origin: left center;
+        }
+        
+        @keyframes rotate3d {
+            0% { transform: rotateX(0deg) rotateY(0deg); }
+            25% { transform: rotateX(90deg) rotateY(90deg); }
+            50% { transform: rotateX(180deg) rotateY(180deg); }
+            75% { transform: rotateX(270deg) rotateY(270deg); }
+            100% { transform: rotateX(360deg) rotateY(360deg); }
+        }
+        
+        .collaboration-cursors {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .user-cursor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .cursor-pointer {
+            width: 0;
+            height: 0;
+            border-left: 10px solid;
+            border-right: 5px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-top: 5px solid transparent;
+        }
+        
+        .cursor-label {
+            position: absolute;
+            top: -25px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+        
+        .toolbar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .tool-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .tool-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .tool-button {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .tool-button:hover, .tool-button.active {
+            background: #3498db;
+            transform: scale(1.1);
+        }
+        
+        .sidebar {
+            width: 320px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-section {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .sidebar-section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .section-title i {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .collaborator-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .collaborator-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .collaborator-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(2px);
+        }
+        
+        .collaborator-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .collaborator-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .collaborator-name {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .collaborator-status {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .status-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #2ecc71;
+            flex-shrink: 0;
+        }
+        
+        .layer-panel {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+        
+        .layer-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            margin-bottom: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .layer-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(2px);
+        }
+        
+        .layer-visibility, .layer-lock {
+            width: 14px;
+            height: 14px;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: color 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .layer-visibility:hover, .layer-lock:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .layer-name {
+            flex: 1;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .chat-panel {
+            height: 220px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 8px;
+            padding-right: 4px;
+        }
+        
+        /* 自定义滚动条样式 - 美化横向滚轮 */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, #5a67d8, #6b46c1);
+            transform: scale(1.1);
+        }
+        
+        ::-webkit-scrollbar-corner {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+        
+        .chat-message {
+            margin-bottom: 6px;
+            padding: 6px 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 4px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        
+        .message-author {
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 10px;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 6px 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: white;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: rgba(52, 152, 219, 0.5);
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .send-button {
+            padding: 6px 10px;
+            background: #3498db;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .send-button:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        
+        .floating-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+        
+        .panel-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .property-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        
+        /* 旋转指示器 - 从chemistry.html提取 */
+        .rotation-indicator { 
+            position: fixed; 
+            right: 16px; 
+            bottom: 16px; 
+            padding: 8px 10px; 
+            background: rgba(0,0,0,0.35); 
+            backdrop-filter: blur(6px); 
+            color:#e8f5ef; 
+            border-radius: 10px; 
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25); 
+            z-index: 1100; 
+        }
+        .rotation-indicator .mini-dial {
+            width: 28px; 
+            height: 28px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(0,255,150,0.5), rgba(0,212,255,0.15));
+            border: 1px solid rgba(0,255,150,0.3);
+            position: relative;
+        }
+        .rotation-indicator .mini-dial::after {
+            content: "";
+            position: absolute;
+            left: 50%; 
+            top: 50%;
+            width: 2px; 
+            height: 12px;
+            background: #00ff96;
+            transform-origin: 50% 90%;
+            transform: translate(-50%, -90%) rotate(0deg);
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(0,255,150,0.6);
+        }
+
+        .property-value {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        /* 实时协作功能样式 */
+        .collaboration-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1200;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .collaboration-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .collaboration-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .online-count {
+            background: #2ecc71;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .collaboration-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 0 20px;
+            margin-top: 15px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-button.active {
+            background: rgba(52, 152, 219, 0.3);
+            color: white;
+        }
+        
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 20px;
+        }
+        
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .user-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(2px);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .user-avatar::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 0, 0, 0.8);
+        }
+        
+        .user-avatar.online::after {
+            background: #2ecc71;
+        }
+        
+        .user-avatar.away::after {
+            background: #f39c12;
+        }
+        
+        .user-avatar.busy::after {
+            background: #e74c3c;
+        }
+        
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            margin-bottom: 2px;
+        }
+        
+        .user-status {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .user-role {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .user-action-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .user-action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .collaboration-controls {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 8px;
+        }
+        
+        .collab-control-btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 6px;
+            color: #3498db;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .collab-control-btn:hover {
+            background: rgba(52, 152, 219, 0.3);
+            color: white;
+        }
+        
+        .collab-control-btn.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        /* 协作光标样式 */
+        .collaboration-cursors {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1100;
+        }
+        
+        .collab-cursor {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1101;
+            transition: all 0.1s ease-out;
+        }
+        
+        .cursor-pointer {
+            width: 0;
+            height: 0;
+            border-left: 12px solid;
+            border-right: 6px solid transparent;
+            border-bottom: 18px solid transparent;
+            border-top: 6px solid transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
+        .cursor-label {
+            position: absolute;
+            top: -30px;
+            left: 18px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .cursor-label::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 8px;
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 4px solid rgba(0, 0, 0, 0.9);
+        }
+        
+        /* 聊天容器样式 */
+         .chat-container {
+             position: fixed;
+             bottom: 20px;
+             right: 20px;
+             width: 300px;
+             height: 400px;
+             background: rgba(0, 0, 0, 0.9);
+             border: 1px solid rgba(255, 255, 255, 0.2);
+             border-radius: 8px;
+             display: flex;
+             flex-direction: column;
+             z-index: 1000;
+             transition: all 0.3s ease;
+         }
+         
+         .chat-container.minimized {
+             height: 50px;
+         }
+         
+         .chat-header {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             padding: 10px 15px;
+             background: rgba(255, 255, 255, 0.1);
+             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+             border-radius: 8px 8px 0 0;
+         }
+         
+         .chat-header h4 {
+             margin: 0;
+             color: white;
+             font-size: 14px;
+             font-weight: 500;
+         }
+         
+         .chat-toggle-btn {
+             background: none;
+             border: none;
+             color: rgba(255, 255, 255, 0.7);
+             cursor: pointer;
+             padding: 5px;
+             border-radius: 3px;
+             transition: all 0.2s ease;
+         }
+         
+         .chat-toggle-btn:hover {
+             background: rgba(255, 255, 255, 0.1);
+             color: white;
+         }
+         
+         .chat-messages {
+             flex: 1;
+             padding: 10px;
+             overflow-y: auto;
+             display: flex;
+             flex-direction: column;
+             gap: 8px;
+         }
+         
+         .chat-container.minimized .chat-messages {
+             display: none;
+         }
+         
+         .chat-message {
+             max-width: 85%;
+             word-wrap: break-word;
+         }
+         
+         .chat-message.self {
+             align-self: flex-end;
+         }
+         
+         .chat-message.other {
+             align-self: flex-start;
+         }
+         
+         .message-header {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             margin-bottom: 4px;
+             font-size: 11px;
+         }
+         
+         .sender {
+             font-weight: 500;
+             color: rgba(255, 255, 255, 0.9);
+         }
+         
+         .time {
+             color: rgba(255, 255, 255, 0.5);
+         }
+         
+         .message-content {
+             background: rgba(255, 255, 255, 0.1);
+             padding: 8px 12px;
+             border-radius: 12px;
+             font-size: 13px;
+             line-height: 1.4;
+             color: rgba(255, 255, 255, 0.9);
+         }
+         
+         .chat-message.self .message-content {
+             background: rgba(74, 144, 226, 0.8);
+         }
+         
+         .chat-input-container {
+             display: flex;
+             padding: 10px;
+             border-top: 1px solid rgba(255, 255, 255, 0.1);
+             gap: 8px;
+         }
+         
+         .chat-container.minimized .chat-input-container {
+             display: none;
+         }
+         
+         #chatInput {
+             flex: 1;
+             background: rgba(255, 255, 255, 0.1);
+             border: 1px solid rgba(255, 255, 255, 0.2);
+             border-radius: 20px;
+             padding: 8px 15px;
+             color: white;
+             font-size: 13px;
+             outline: none;
+         }
+         
+         #chatInput::placeholder {
+             color: rgba(255, 255, 255, 0.5);
+         }
+         
+         #chatInput:focus {
+             border-color: rgba(74, 144, 226, 0.8);
+             background: rgba(255, 255, 255, 0.15);
+         }
+         
+         .send-btn {
+             background: rgba(74, 144, 226, 0.8);
+             border: none;
+             border-radius: 50%;
+             width: 36px;
+             height: 36px;
+             color: white;
+             cursor: pointer;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             transition: all 0.2s ease;
+         }
+         
+         .send-btn:hover {
+             background: rgba(74, 144, 226, 1);
+             transform: scale(1.05);
+         }
+         
+         .send-btn:active {
+             transform: scale(0.95);
+         }
+
+         /* 协作操作指示器 */
+        .operation-indicator {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            pointer-events: none;
+            z-index: 1102;
+            animation: fadeInOut 2s ease-in-out;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateY(10px); }
+            20%, 80% { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .collaboration-panel {
+                width: 280px;
+                right: 10px;
+                top: 10px;
+            }
+        }
+        
+        .property-value {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            min-width: 60px;
+            text-align: center;
+        }
+    </style>
+    <!-- Three.js 库 -->
+    <script src="vendor/three/three.min.js"></script>
+    <!-- 3D化学模型脚本 -->
+    <script src="scripts/chemistry-3d.js"></script>
+</head>
+<body>
+<div class="chemistry-page">
+    <!-- 退出按钮 -->
+    <a href="features.html" class="exit-button">
+        <i class="fas fa-sign-out-alt"></i>
+        退出
+    </a>
+        <div class="chemistry-hero">
+            <div class="chemistry-3d-container">
+                <div class="molecule-model full-immersive" id="moleculeModel">
+                    <!-- Three.js 3D模型将在这里渲染 -->
+                </div>
+                
+                <!-- 协作光标容器 -->
+                <div class="collaboration-cursors" id="collaborationCursors">
+                    <!-- 协作光标将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 实时协作面板 -->
+        <div class="collaboration-panel" id="collaborationPanel">
+            <div class="collaboration-header">
+                <div class="collaboration-title">
+                    <i class="fas fa-users"></i>
+                    实时协作
+                </div>
+                <div class="online-count" id="onlineCount">4</div>
+            </div>
+            
+            <div class="collaboration-tabs">
+                <button class="tab-button active" data-tab="users">
+                    <i class="fas fa-user-friends"></i> 用户
+                </button>
+                <button class="tab-button" data-tab="activity">
+                    <i class="fas fa-history"></i> 活动
+                </button>
+            </div>
+            
+            <div class="tab-content" id="tabContent">
+                <!-- 用户列表标签页 -->
+                <div class="tab-pane active" id="usersTab">
+                    <div class="user-list" id="userList">
+                        <div class="user-item">
+                            <div class="user-avatar online" style="background: #3498db;">张</div>
+                            <div class="user-info">
+                                <div class="user-name">张老师</div>
+                                <div class="user-status">
+                                    <span class="user-role">教师</span>
+                                    正在编辑分子结构
+                                </div>
+                            </div>
+                            <div class="user-actions">
+                                <button class="user-action-btn" title="跟随视角">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="user-action-btn" title="发送消息">
+                                    <i class="fas fa-comment"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="user-item">
+                            <div class="user-avatar online" style="background: #e74c3c;">李</div>
+                            <div class="user-info">
+                                <div class="user-name">李老师</div>
+                                <div class="user-status">
+                                    <span class="user-role">教师</span>
+                                    正在观看演示
+                                </div>
+                            </div>
+                            <div class="user-actions">
+                                <button class="user-action-btn" title="跟随视角">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="user-action-btn" title="发送消息">
+                                    <i class="fas fa-comment"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="user-item">
+                            <div class="user-avatar online" style="background: #2ecc71;">王</div>
+                            <div class="user-info">
+                                <div class="user-name">王同学</div>
+                                <div class="user-status">
+                                    <span class="user-role">学生</span>
+                                    正在添加标注
+                                </div>
+                            </div>
+                            <div class="user-actions">
+                                <button class="user-action-btn" title="跟随视角">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="user-action-btn" title="发送消息">
+                                    <i class="fas fa-comment"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="user-item">
+                            <div class="user-avatar away" style="background: #f39c12;">赵</div>
+                            <div class="user-info">
+                                <div class="user-name">赵同学</div>
+                                <div class="user-status">
+                                    <span class="user-role">学生</span>
+                                    暂时离开
+                                </div>
+                            </div>
+                            <div class="user-actions">
+                                <button class="user-action-btn" title="跟随视角" disabled>
+                                    <i class="fas fa-eye-slash"></i>
+                                </button>
+                                <button class="user-action-btn" title="发送消息">
+                                    <i class="fas fa-comment"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 活动记录标签页 -->
+                <div class="tab-pane" id="activityTab">
+                    <div class="activity-list" id="activityList">
+                        <div class="activity-item">
+                            <div class="activity-time">14:32</div>
+                            <div class="activity-content">
+                                <strong>张老师</strong> 旋转了分子模型
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-time">14:30</div>
+                            <div class="activity-content">
+                                <strong>王同学</strong> 添加了氢原子标注
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-time">14:28</div>
+                            <div class="activity-content">
+                                <strong>李老师</strong> 加入了协作会话
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collaboration-controls">
+                <button class="collab-control-btn active" id="shareViewBtn">
+                    <i class="fas fa-share-alt"></i>
+                    共享视角
+                </button>
+                <button class="collab-control-btn" id="lockEditBtn">
+                    <i class="fas fa-lock-open"></i>
+                    编辑锁定
+                </button>
+            </div>
+        </div>
+    </div>
+                            <i class="fas fa-plus-circle"></i>
+                        </button>
+                        <button class="tool-button" title="添加化学键">
+                            <i class="fas fa-link"></i>
+                        </button>
+                        <button class="tool-button" title="添加标注">
+                            <i class="fas fa-comment"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="tool-group">
+                        <div class="tool-label">视图</div>
+                        <button class="tool-button" title="重置视角">
+                            <i class="fas fa-home"></i>
+                        </button>
+                        <button class="tool-button" title="全屏">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 旋转指示器 -->
+                <div class="rotation-indicator" id="rotationIndicator" aria-live="polite" style="display: none;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div class="mini-dial" id="rotationDial"></div>
+                        <div style="font-size:11px; line-height:1.2;">
+                            <div>X: <span id="rotX">0°</span></div>
+                            <div>Y: <span id="rotY">0°</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 属性面板 -->
+                <div class="floating-panel" style="display: none;">
+                    <div class="panel-title">
+                        <i class="fas fa-info-circle"></i> 选中对象属性
+                    </div>
+                    <div class="property-item">
+                        <span>元素:</span>
+                        <span class="property-value">碳 (C)</span>
+                    </div>
+                    <div class="property-item">
+                        <span>原子序数:</span>
+                        <span class="property-value">6</span>
+                    </div>
+                    <div class="property-item">
+                        <span>电子数:</span>
+                        <span class="property-value">6</span>
+                    </div>
+                    <div class="property-item">
+                        <span>化合价:</span>
+                        <span class="property-value">4</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 侧边栏 -->
+        <div class="sidebar" style="display: none;">
+            <!-- 协作者列表 -->
+            <div class="sidebar-section">
+                <div class="section-title">
+                    <i class="fas fa-users"></i>
+                    协作者 (4)
+                </div>
+                <div class="collaborator-list">
+                    <div class="collaborator-item">
+                        <div class="collaborator-avatar" style="background: #3498db;">张</div>
+                        <div class="collaborator-info">
+                            <div class="collaborator-name">张老师</div>
+                            <div class="collaborator-status">
+                                <div class="status-indicator"></div>
+                                正在编辑
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="collaborator-item">
+                        <div class="collaborator-avatar" style="background: #e74c3c;">李</div>
+                        <div class="collaborator-info">
+                            <div class="collaborator-name">李老师</div>
+                            <div class="collaborator-status">
+                                <div class="status-indicator"></div>
+                                正在观看
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="collaborator-item">
+                        <div class="collaborator-avatar" style="background: #2ecc71;">王</div>
+                        <div class="collaborator-info">
+                            <div class="collaborator-name">王同学</div>
+                            <div class="collaborator-status">
+                                <div class="status-indicator"></div>
+                                正在标注
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="collaborator-item">
+                        <div class="collaborator-avatar" style="background: #f39c12;">赵</div>
+                        <div class="collaborator-info">
+                            <div class="collaborator-name">赵同学</div>
+                            <div class="collaborator-status">
+                                <div class="status-indicator" style="background: #95a5a6;"></div>
+                                离线
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 图层管理 -->
+            <div class="sidebar-section layer-panel">
+                <div class="section-title">
+                    <i class="fas fa-layer-group"></i>
+                    图层管理
+                </div>
+                
+                <div class="layer-item">
+                    <button class="layer-visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <div class="layer-name">分子结构</div>
+                    <button class="layer-lock">
+                        <i class="fas fa-unlock"></i>
+                    </button>
+                </div>
+                
+                <div class="layer-item">
+                    <button class="layer-visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <div class="layer-name">化学键</div>
+                    <button class="layer-lock">
+                        <i class="fas fa-unlock"></i>
+                    </button>
+                </div>
+                
+                <div class="layer-item">
+                    <button class="layer-visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <div class="layer-name">标注文字</div>
+                    <button class="layer-lock">
+                        <i class="fas fa-lock"></i>
+                    </button>
+                </div>
+                
+                <div class="layer-item">
+                    <button class="layer-visibility">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                    <div class="layer-name">电子云</div>
+                    <button class="layer-lock">
+                        <i class="fas fa-unlock"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 实时聊天 -->
+            <div class="sidebar-section chat-panel">
+                <div class="section-title">
+                    <i class="fas fa-comments"></i>
+                    实时讨论
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-message">
+                        <div class="message-author">李老师</div>
+                        <div>这个甲烷分子的键角是多少度？</div>
+                    </div>
+                    <div class="chat-message">
+                        <div class="message-author">张老师</div>
+                        <div>109.5度，是四面体结构</div>
+                    </div>
+                    <div class="chat-message">
+                        <div class="message-author">王同学</div>
+                        <div>我在氢原子上添加了标注</div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" placeholder="输入消息..." id="messageInput">
+                    <button class="send-button" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化3D场景
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 加载Three.js并初始化3D甲烷分子模型
+            if (typeof loadThreeAndInit === 'function') {
+                await loadThreeAndInit('methane');
+            }
+            
+            // 初始化拖拽功能
+            initMoleculeDrag();
+            updateRotationIndicator();
+        });
+
+        // 3D拖拽旋转控制变量
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let modelRotation = { x: 0, y: 0 };
+        let currentRotation = { x: 0, y: 0 };
+        let currentRotation3D = { x: 0, y: 0 };
+        let modelScale = 1;
+
+        function updateModelTransform() {
+            const model = document.getElementById('moleculeModel');
+            // 若存在 Three 场景，则由 Three 渲染；否则应用2D变换
+            if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup && typeof renderThree === 'function') {
+                renderThree();
+            } else if (model) {
+                model.style.transform = `rotateX(${modelRotation.x}deg) rotateY(${modelRotation.y}deg) scale(${modelScale})`;
+            }
+            updateRotationIndicator();
+        }
+
+        function updateRotationIndicator() {
+            const rotXSpan = document.getElementById('rotX');
+            const rotYSpan = document.getElementById('rotY');
+            const dial = document.getElementById('rotationDial');
+            
+            let displayX = modelRotation.x;
+            let displayY = modelRotation.y;
+            
+            // Three 模式：从 3D 组获取旋转
+            if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                displayX = moleculeGroup.rotation.x * (180 / Math.PI);
+                displayY = moleculeGroup.rotation.y * (180 / Math.PI);
+            }
+            
+            if (rotXSpan) rotXSpan.textContent = Math.round(displayX) + '°';
+            if (rotYSpan) rotYSpan.textContent = Math.round(displayY) + '°';
+            
+            if (dial) {
+                const needle = dial.querySelector('::after') || dial;
+                const angle = Math.atan2(displayY, displayX) * 180 / Math.PI;
+                dial.style.setProperty('--needle-rotation', angle + 'deg');
+            }
+        }
+
+        function initMoleculeDrag() {
+            const model = document.getElementById('moleculeModel');
+            if (!model) return;
+
+            const onDown = (x, y) => {
+                isDragging = true;
+                startX = x;
+                startY = y;
+                currentRotation.x = modelRotation.x;
+                currentRotation.y = modelRotation.y;
+                model.classList.add('dragging');
+                document.body.style.userSelect = 'none';
+                
+                // Three 模式下记录当前旋转
+                if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                    currentRotation3D.x = moleculeGroup.rotation.x;
+                    currentRotation3D.y = moleculeGroup.rotation.y;
+                }
+            };
+
+            const onMove = (x, y) => {
+                if (!isDragging) return;
+                
+                const deltaX = x - startX;
+                const deltaY = y - startY;
+                
+                // Three 模式：旋转 3D 组（不限制角度）
+                if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                    moleculeGroup.rotation.y = currentRotation3D.y + deltaX * 0.01;
+                    moleculeGroup.rotation.x = currentRotation3D.x - deltaY * 0.01;
+                    
+                    if (typeof renderThree === 'function') {
+                        renderThree();
+                    }
+                } else {
+                    // 2D 模式：限制角度范围
+                    const sensitivity = 0.3;
+                    modelRotation.y = currentRotation.y + deltaX * sensitivity;
+                    modelRotation.x = currentRotation.x - deltaY * sensitivity;
+                    updateModelTransform();
+                }
+                
+                updateRotationIndicator();
+            };
+
+            const onUp = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                model.classList.remove('dragging');
+                document.body.style.userSelect = '';
+            };
+
+            // 鼠标事件
+            document.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                if (e.target && e.target.closest('.sidebar, .workspace-header, .toolbar, .floating-panel, .rotation-indicator, a, button, input, select, textarea, label')) {
+                    return;
+                }
+                onDown(e.clientX, e.clientY);
+            });
+            document.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
+            document.addEventListener('mouseup', onUp);
+
+            // 触摸事件
+            document.addEventListener('touchstart', (e) => {
+                if (e.target && e.target.closest('.sidebar, .workspace-header, .toolbar, .floating-panel, .rotation-indicator, a, button, input, select, textarea, label')) {
+                    return;
+                }
+                const touch = e.touches[0];
+                onDown(touch.clientX, touch.clientY);
+                e.preventDefault();
+            });
+            document.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0];
+                onMove(touch.clientX, touch.clientY);
+                e.preventDefault();
+            });
+            document.addEventListener('touchend', onUp);
+
+            // 防止拖拽
+            model.addEventListener('dragstart', (e) => e.preventDefault());
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            const step = 5;
+            switch(e.key) {
+                case 'ArrowLeft':
+                    modelRotation.y -= step;
+                    updateModelTransform();
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    modelRotation.y += step;
+                    updateModelTransform();
+                    e.preventDefault();
+                    break;
+                case 'ArrowUp':
+                    modelRotation.x -= step;
+                    updateModelTransform();
+                    e.preventDefault();
+                    break;
+                case 'ArrowDown':
+                    modelRotation.x += step;
+                    updateModelTransform();
+                    e.preventDefault();
+                    break;
+                case 'r':
+                case 'R':
+                    modelRotation = { x: 0, y: 0 };
+                    updateModelTransform();
+                    e.preventDefault();
+                    break;
+            }
+            
+            if (e.ctrlKey) {
+                switch(e.key) {
+                    case 's':
+                        e.preventDefault();
+                        alert('项目已保存');
+                        break;
+                    case 'z':
+                        e.preventDefault();
+                        alert('撤销操作');
+                        break;
+                    case 'y':
+                        e.preventDefault();
+                        alert('重做操作');
+                        break;
+                }
+            }
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initMoleculeDrag();
+            updateRotationIndicator();
+            
+            // 滚轮缩放
+            const modelEl = document.getElementById('moleculeModel');
+            if (modelEl) {
+                modelEl.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                    
+                    if (window.THREE && typeof adjustZoom3D === 'function') {
+                        adjustZoom3D(delta);
+                    } else {
+                        adjustZoom2D(delta);
+                    }
+                    
+                    updateRotationIndicator();
+                }, { passive: false });
+            }
+
+            // 键盘控制
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                
+                switch(e.key.toLowerCase()) {
+                    case 'w':
+                        if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                            moleculeGroup.rotation.x -= 0.1;
+                            if (typeof renderThree === 'function') renderThree();
+                        } else {
+                            modelRotation.x -= 5;
+                            updateModelTransform();
+                        }
+                        updateRotationIndicator();
+                        break;
+                    case 's':
+                        if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                            moleculeGroup.rotation.x += 0.1;
+                            if (typeof renderThree === 'function') renderThree();
+                        } else {
+                            modelRotation.x += 5;
+                            updateModelTransform();
+                        }
+                        updateRotationIndicator();
+                        break;
+                    case 'a':
+                        if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                            moleculeGroup.rotation.y -= 0.1;
+                            if (typeof renderThree === 'function') renderThree();
+                        } else {
+                            modelRotation.y -= 5;
+                            updateModelTransform();
+                        }
+                        updateRotationIndicator();
+                        break;
+                    case 'd':
+                        if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                            moleculeGroup.rotation.y += 0.1;
+                            if (typeof renderThree === 'function') renderThree();
+                        } else {
+                            modelRotation.y += 5;
+                            updateModelTransform();
+                        }
+                        updateRotationIndicator();
+                        break;
+                    case 'escape':
+                        // 重置旋转和缩放
+                        if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                            moleculeGroup.rotation.set(0, 0, 0);
+                            if (typeof renderThree === 'function') renderThree();
+                        } else {
+                            modelRotation.x = 0;
+                            modelRotation.y = 0;
+                            modelScale = 1;
+                            updateModelTransform();
+                        }
+                        updateRotationIndicator();
+                        break;
+                    case '+':
+                    case '=':
+                        if (window.THREE && typeof adjustZoom3D === 'function') {
+                            adjustZoom3D(0.1);
+                        } else {
+                            modelScale = Math.min(3, modelScale * 1.1);
+                            updateModelTransform();
+                        }
+                        updateRotationIndicator();
+                        break;
+                    case '-':
+                    case '_':
+                        if (window.THREE && typeof adjustZoom3D === 'function') {
+                            adjustZoom3D(-0.1);
+                        } else {
+                            modelScale = Math.max(0.5, modelScale / 1.1);
+                            updateModelTransform();
+                        }
+                        updateRotationIndicator();
+                        break;
+                }
+            });
+
+            // 缩放函数
+            function adjustZoom2D(delta) {
+                if (delta > 0) {
+                    modelScale = Math.min(3, modelScale * 1.1);
+                } else {
+                    modelScale = Math.max(0.5, modelScale / 1.1);
+                }
+                updateModelTransform();
+            }
+        });
+
+        // 发送消息功能
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            if (!input) return;
+            const message = input.value.trim();
+            if (message) {
+                const chatMessages = document.getElementById('chatMessages');
+                if (!chatMessages) return;
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'chat-message';
+                const author = document.createElement('div');
+                author.className = 'message-author';
+                author.textContent = '我';
+                const content = document.createElement('div');
+                content.textContent = message;
+                content.style.whiteSpace = 'pre-wrap';
+                messageDiv.append(author, content);
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                input.value = '';
+                window.HIECRealtime?.sendChat(message);
+            }
+        }
+
+        // 回车发送消息
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 工具按钮切换
+        document.querySelectorAll('.tool-button').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.tool-button').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 图层可见性切换
+        document.querySelectorAll('.layer-visibility').forEach(button => {
+            button.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('fa-eye')) {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+
+        // 图层锁定切换
+        document.querySelectorAll('.layer-lock').forEach(button => {
+            button.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('fa-unlock')) {
+                    icon.classList.remove('fa-unlock');
+                    icon.classList.add('fa-lock');
+                } else {
+                    icon.classList.remove('fa-lock');
+                    icon.classList.add('fa-unlock');
+                }
+            });
+        });
+
+        // 模拟协作光标移动
+        function animateCursors() {
+            const cursors = document.querySelectorAll('.user-cursor');
+            cursors.forEach(cursor => {
+                const randomX = Math.random() * 80 + 10;
+                const randomY = Math.random() * 80 + 10;
+                cursor.style.left = randomX + '%';
+                cursor.style.top = randomY + '%';
+            });
+        }
+
+        // 每5秒移动一次光标
+        setInterval(animateCursors, 5000);
+
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey) {
+                switch(e.key) {
+                    case 's':
+                        e.preventDefault();
+                        alert('项目已保存');
+                        break;
+                    case 'z':
+                        e.preventDefault();
+                        alert('撤销操作');
+                        break;
+                    case 'y':
+                        e.preventDefault();
+                        alert('重做操作');
+                        break;
+                }
+            }
+        });
+
+        // 模拟实时协作更新
+         function simulateCollaboration() {
+             if (window.__hiecRealtimeConnected) return;
+            const messages = [
+                { author: '李老师', text: '我调整了分子的角度' },
+                { author: '王同学', text: '添加了新的标注' },
+                { author: '张老师', text: '修改了原子的颜色' },
+                { author: '赵同学', text: '这个模型很清楚！' }
+            ];
+            
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) return;
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            const author = document.createElement('div');
+            author.className = 'message-author';
+            author.textContent = randomMessage.author;
+            const content = document.createElement('div');
+            content.textContent = randomMessage.text;
+            messageDiv.append(author, content);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 每10秒模拟一次协作消息
+         setInterval(simulateCollaboration, 10000);
+         
+         // 协作面板功能
+         function initCollaborationPanel() {
+             // 标签页切换
+             const tabButtons = document.querySelectorAll('.tab-button');
+             const tabPanes = document.querySelectorAll('.tab-pane');
+             
+             tabButtons.forEach(button => {
+                 button.addEventListener('click', () => {
+                     const targetTab = button.getAttribute('data-tab');
+                     
+                     // 移除所有活动状态
+                     tabButtons.forEach(btn => btn.classList.remove('active'));
+                     tabPanes.forEach(pane => pane.classList.remove('active'));
+                     
+                     // 激活当前标签
+                     button.classList.add('active');
+                     document.getElementById(targetTab + 'Tab').classList.add('active');
+                 });
+             });
+             
+             // 协作控制按钮
+             const shareViewBtn = document.getElementById('shareViewBtn');
+             const lockEditBtn = document.getElementById('lockEditBtn');
+             
+             shareViewBtn.addEventListener('click', () => {
+                 shareViewBtn.classList.toggle('active');
+                 const isActive = shareViewBtn.classList.contains('active');
+                 shareViewBtn.innerHTML = isActive ? 
+                     '<i class="fas fa-share-alt"></i> 共享中' : 
+                     '<i class="fas fa-share-alt"></i> 共享视角';
+                 
+                 // 模拟共享视角功能
+                 if (isActive) {
+                     addActivityRecord('你', '开启了视角共享');
+                 } else {
+                     addActivityRecord('你', '关闭了视角共享');
+                 }
+             });
+             
+             lockEditBtn.addEventListener('click', () => {
+                 lockEditBtn.classList.toggle('active');
+                 const isLocked = lockEditBtn.classList.contains('active');
+                 const icon = lockEditBtn.querySelector('i');
+                 
+                 if (isLocked) {
+                     icon.classList.remove('fa-lock-open');
+                     icon.classList.add('fa-lock');
+                     lockEditBtn.innerHTML = '<i class="fas fa-lock"></i> 已锁定';
+                     addActivityRecord('你', '锁定了编辑权限');
+                 } else {
+                     icon.classList.remove('fa-lock');
+                     icon.classList.add('fa-lock-open');
+                     lockEditBtn.innerHTML = '<i class="fas fa-lock-open"></i> 编辑锁定';
+                     addActivityRecord('你', '解锁了编辑权限');
+                 }
+             });
+             
+             // 用户操作按钮
+             document.querySelectorAll('.user-action-btn').forEach(btn => {
+                 btn.addEventListener('click', (e) => {
+                     e.stopPropagation();
+                     const action = btn.getAttribute('title');
+                     const userName = btn.closest('.user-item').querySelector('.user-name').textContent;
+                     
+                     if (action === '跟随视角') {
+                         followUserView(userName);
+                     } else if (action === '发送消息') {
+                         openPrivateChat(userName);
+                     }
+                 });
+             });
+         }
+         
+         // 添加活动记录
+        function addActivityRecord(user, action) {
+            const activityList = document.getElementById('activityList');
+            if (!activityList) return;
+             const now = new Date();
+             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                            now.getMinutes().toString().padStart(2, '0');
+             
+             const activityItem = document.createElement('div');
+             activityItem.className = 'activity-item';
+            const time = document.createElement('div');
+            time.className = 'activity-time';
+            time.textContent = timeStr;
+            const content = document.createElement('div');
+            content.className = 'activity-content';
+            const userElement = document.createElement('strong');
+            userElement.textContent = user;
+            content.append(userElement, document.createTextNode(` ${action}`));
+            activityItem.append(time, content);
+             
+             activityList.insertBefore(activityItem, activityList.firstChild);
+             
+             // 限制活动记录数量
+             if (activityList.children.length > 10) {
+                 activityList.removeChild(activityList.lastChild);
+             }
+         }
+         
+         // 跟随用户视角
+         function followUserView(userName) {
+             addActivityRecord('你', `开始跟随 ${userName} 的视角`);
+             
+             // 模拟跟随视角效果
+             if (window.THREE && typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                 const targetRotation = {
+                     x: (Math.random() - 0.5) * Math.PI,
+                     y: (Math.random() - 0.5) * Math.PI
+                 };
+                 
+                 animateToRotation(targetRotation);
+             }
+         }
+         
+         // 动画到目标旋转
+         function animateToRotation(targetRotation) {
+             if (!window.THREE || typeof moleculeGroup === 'undefined' || !moleculeGroup) return;
+             
+             const startRotation = {
+                 x: moleculeGroup.rotation.x,
+                 y: moleculeGroup.rotation.y
+             };
+             
+             const duration = 1000; // 1秒
+             const startTime = Date.now();
+             
+             function animate() {
+                 const elapsed = Date.now() - startTime;
+                 const progress = Math.min(elapsed / duration, 1);
+                 
+                 // 使用缓动函数
+                 const easeProgress = 1 - Math.pow(1 - progress, 3);
+                 
+                 moleculeGroup.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeProgress;
+                 moleculeGroup.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeProgress;
+                 
+                 if (typeof renderThree === 'function') {
+                     renderThree();
+                 }
+                 updateRotationIndicator();
+                 
+                 if (progress < 1) {
+                     requestAnimationFrame(animate);
+                 }
+             }
+             
+             animate();
+         }
+         
+         // 打开私聊
+         function openPrivateChat(userName) {
+             alert(`正在打开与 ${userName} 的私聊窗口...`);
+         }
+         
+         // 创建协作光标
+         function createCollaborationCursor(userId, userName, color, x, y) {
+             const cursorsContainer = document.getElementById('collaborationCursors');
+             
+             // 移除已存在的光标
+             const existingCursor = document.getElementById(`cursor-${userId}`);
+             if (existingCursor) {
+                 existingCursor.remove();
+             }
+             
+             const cursor = document.createElement('div');
+             cursor.id = `cursor-${userId}`;
+             cursor.className = 'collab-cursor';
+             cursor.style.left = x + 'px';
+             cursor.style.top = y + 'px';
+             
+             const pointer = document.createElement('div');
+             pointer.className = 'cursor-pointer';
+             pointer.style.borderLeftColor = color;
+             const label = document.createElement('div');
+             label.className = 'cursor-label';
+             label.style.background = color;
+             label.textContent = userName;
+             cursor.append(pointer, label);
+             
+             cursorsContainer.appendChild(cursor);
+             
+             // 3秒后淡出
+             setTimeout(() => {
+                 if (cursor.parentNode) {
+                     cursor.style.opacity = '0';
+                     setTimeout(() => {
+                         if (cursor.parentNode) {
+                             cursor.remove();
+                         }
+                     }, 300);
+                 }
+             }, 3000);
+         }
+         
+         // 模拟协作光标移动
+         function simulateCollaborationCursors() {
+             if (window.__hiecRealtimeConnected) return;
+             const users = [
+                 { id: 'user1', name: '张老师', color: '#3498db' },
+                 { id: 'user2', name: '李老师', color: '#e74c3c' },
+                 { id: 'user3', name: '王同学', color: '#2ecc71' }
+             ];
+             
+             users.forEach(user => {
+                 if (Math.random() > 0.7) { // 30% 概率显示光标
+                     const x = Math.random() * (window.innerWidth - 100);
+                     const y = Math.random() * (window.innerHeight - 100);
+                     createCollaborationCursor(user.id, user.name, user.color, x, y);
+                 }
+             });
+         }
+         
+         // 显示操作指示器
+         function showOperationIndicator(x, y, text, color = '#3498db') {
+             const indicator = document.createElement('div');
+             indicator.className = 'operation-indicator';
+             indicator.style.left = x + 'px';
+             indicator.style.top = y + 'px';
+             indicator.style.background = color;
+             indicator.textContent = text;
+             
+             document.body.appendChild(indicator);
+             
+             // 2秒后移除
+             setTimeout(() => {
+                 if (indicator.parentNode) {
+                     indicator.remove();
+                 }
+             }, 2000);
+         }
+         
+         // 模拟协作操作
+         function simulateCollaborationOperations() {
+             if (window.__hiecRealtimeConnected) return;
+             const operations = [
+                 { text: '张老师正在旋转分子', color: '#3498db' },
+                 { text: '王同学添加了标注', color: '#2ecc71' },
+                 { text: '李老师修改了颜色', color: '#e74c3c' }
+             ];
+             
+             if (Math.random() > 0.8) { // 20% 概率显示操作
+                 const operation = operations[Math.floor(Math.random() * operations.length)];
+                 const x = Math.random() * (window.innerWidth - 200);
+                 const y = Math.random() * (window.innerHeight - 100);
+                 showOperationIndicator(x, y, operation.text, operation.color);
+             }
+         }
+         
+         // 初始化协作功能
+          document.addEventListener('DOMContentLoaded', function() {
+              initCollaborationPanel();
+              // 页面已经提供静态讨论面板，不再重复创建第二个 chatMessages。
+              
+              // 定期模拟协作活动
+              setInterval(simulateCollaborationCursors, 3000);
+              setInterval(simulateCollaborationOperations, 5000);
+              
+              // 模拟用户状态更新
+              setInterval(() => {
+                  const userItems = document.querySelectorAll('.user-item');
+                  userItems.forEach(item => {
+                      const status = item.querySelector('.user-status');
+                      const statusTexts = [
+                          '正在编辑分子结构',
+                          '正在观看演示',
+                          '正在添加标注',
+                          '正在调整视角',
+                          '正在讨论问题'
+                      ];
+                      
+                      if (Math.random() > 0.9) { // 10% 概率更新状态
+                          const newStatus = statusTexts[Math.floor(Math.random() * statusTexts.length)];
+                          status.childNodes[1].textContent = newStatus;
+                      }
+                  });
+              }, 8000);
+          });
+         
+         // 添加活动记录样式
+         const activityStyle = document.createElement('style');
+         activityStyle.textContent = `
+             .activity-list {
+                 display: flex;
+                 flex-direction: column;
+                 gap: 6px;
+                 max-height: 200px;
+                 overflow-y: auto;
+             }
+             
+             .activity-item {
+                 display: flex;
+                 align-items: flex-start;
+                 gap: 8px;
+                 padding: 6px 8px;
+                 background: rgba(255, 255, 255, 0.06);
+                 border-radius: 4px;
+                 font-size: 11px;
+                 line-height: 1.3;
+             }
+             
+             .activity-time {
+                 color: rgba(255, 255, 255, 0.5);
+                 font-size: 10px;
+                 flex-shrink: 0;
+                 margin-top: 1px;
+             }
+             
+             .activity-content {
+                 color: rgba(255, 255, 255, 0.8);
+                 flex: 1;
+             }
+             
+             .activity-content strong {
+                 color: rgba(255, 255, 255, 0.9);
+             }
+             
+             .tab-pane {
+                 display: none;
+             }
+             
+             .tab-pane.active {
+                 display: block;
+             }
+         `;
+         document.head.appendChild(activityStyle);
+          
+          // 实时聊天功能
+          function initFloatingChatSystem() {
+              const chatContainer = document.createElement('div');
+              chatContainer.id = 'chatContainer';
+              chatContainer.className = 'chat-container';
+              chatContainer.innerHTML = `
+                  <div class="chat-header">
+                      <h4><i class="fas fa-comments"></i> 实时聊天</h4>
+                      <button class="chat-toggle-btn" onclick="this.closest('.chat-container')?.classList.toggle('collapsed')">
+                          <i class="fas fa-minus"></i>
+                      </button>
+                  </div>
+                  <div class="chat-messages" id="floatingChatMessages"></div>
+                  <div class="chat-input-container">
+                      <input type="text" id="chatInput" placeholder="输入消息..." maxlength="200">
+                  <button onclick="sendFloatingMessage()" class="send-btn">
+                          <i class="fas fa-paper-plane"></i>
+                      </button>
+                  </div>
+              `;
+              
+              document.body.appendChild(chatContainer);
+              
+              // 聊天输入事件
+              const chatInput = document.getElementById('chatInput');
+              chatInput.addEventListener('keypress', (e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendFloatingMessage();
+                  }
+              });
+              
+              // 模拟接收消息
+              setInterval(simulateIncomingFloatingMessages, 15000);
+          }
+          
+          // 发送消息
+          function sendFloatingMessage() {
+              const chatInput = document.getElementById('chatInput');
+              const message = chatInput.value.trim();
+              
+              if (message) {
+                  addFloatingChatMessage('你', message, 'self');
+                  chatInput.value = '';
+                  
+                  // 模拟回复
+                  setTimeout(() => {
+                      const replies = [
+                          '好的，我明白了',
+                          '这个想法很不错',
+                          '让我们试试这个方法',
+                          '我同意你的观点',
+                          '这里需要注意一下'
+                      ];
+                      const randomReply = replies[Math.floor(Math.random() * replies.length)];
+                      const users = ['张老师', '李老师', '王同学'];
+                      const randomUser = users[Math.floor(Math.random() * users.length)];
+                      addFloatingChatMessage(randomUser, randomReply, 'other');
+                  }, 2000 + Math.random() * 3000);
+              }
+          }
+          
+          // 添加聊天消息
+          function addFloatingChatMessage(sender, message, type) {
+              const chatMessages = document.getElementById('floatingChatMessages');
+              if (!chatMessages) return;
+              const now = new Date();
+              const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                             now.getMinutes().toString().padStart(2, '0');
+              
+              const messageElement = document.createElement('div');
+              messageElement.className = `chat-message ${type}`;
+              const header = document.createElement('div');
+              header.className = 'message-header';
+              const senderElement = document.createElement('span');
+              senderElement.className = 'sender';
+              senderElement.textContent = sender;
+              const timeElement = document.createElement('span');
+              timeElement.className = 'time';
+              timeElement.textContent = timeStr;
+              header.append(senderElement, timeElement);
+              const content = document.createElement('div');
+              content.className = 'message-content';
+              content.textContent = message;
+              messageElement.append(header, content);
+              
+              chatMessages.appendChild(messageElement);
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+              
+              // 限制消息数量
+              if (chatMessages.children.length > 50) {
+                  chatMessages.removeChild(chatMessages.firstChild);
+              }
+          }
+          
+          // 模拟接收消息
+          function simulateIncomingFloatingMessages() {
+              const messages = [
+                  { sender: '张老师', text: '大家注意看这个分子的结构特点' },
+                  { sender: '李老师', text: '这个键角很有意思' },
+                  { sender: '王同学', text: '我觉得这里可以添加一个标注' },
+                  { sender: '张老师', text: '让我们旋转一下看看另一个角度' },
+                  { sender: '李老师', text: '这个颜色编码很清楚' }
+              ];
+              
+              if (Math.random() > 0.7) { // 30% 概率收到消息
+                  const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                  addFloatingChatMessage(randomMessage.sender, randomMessage.text, 'other');
+              }
+          }
+          
+          // 3D模型协作操作功能
+          function init3DCollaboration() {
+              // 监听3D模型的交互事件
+              if (typeof moleculeGroup !== 'undefined' && moleculeGroup) {
+                  // 添加协作操作监听器
+                  addCollaborationListeners();
+              }
+              
+              // 模拟其他用户的3D操作
+              setInterval(simulate3DCollaborationOperations, 8000);
+          }
+          
+          // 添加协作操作监听器
+          function addCollaborationListeners() {
+              // 监听鼠标事件
+              const canvas = document.querySelector('canvas');
+              if (canvas) {
+                  let isMouseDown = false;
+                  let lastMousePosition = { x: 0, y: 0 };
+                  
+                  canvas.addEventListener('mousedown', (e) => {
+                      isMouseDown = true;
+                      lastMousePosition = { x: e.clientX, y: e.clientY };
+                      broadcastCollaborationAction('开始旋转分子', e.clientX, e.clientY);
+                  });
+                  
+                  canvas.addEventListener('mousemove', (e) => {
+                      if (isMouseDown) {
+                          const deltaX = e.clientX - lastMousePosition.x;
+                          const deltaY = e.clientY - lastMousePosition.y;
+                          
+                          if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+                              broadcastCollaborationAction('正在旋转分子', e.clientX, e.clientY);
+                              lastMousePosition = { x: e.clientX, y: e.clientY };
+                          }
+                      }
+                  });
+                  
+                  canvas.addEventListener('mouseup', (e) => {
+                      if (isMouseDown) {
+                          isMouseDown = false;
+                          broadcastCollaborationAction('完成旋转', e.clientX, e.clientY);
+                      }
+                  });
+                  
+                  // 监听滚轮缩放
+                  canvas.addEventListener('wheel', (e) => {
+                      const action = e.deltaY > 0 ? '缩小分子' : '放大分子';
+                      broadcastCollaborationAction(action, e.clientX, e.clientY);
+                  });
+              }
+          }
+          
+          // 广播协作操作
+          function broadcastCollaborationAction(action, x, y) {
+              // 显示操作指示器
+              showOperationIndicator(x, y, `你 ${action}`, '#4a90e2');
+              
+              // 添加到活动记录
+              addActivityRecord('你', action);
+              window.HIECRealtime?.sendOperation(action);
+
+              if (window.__hiecRealtimeConnected) return;
+              
+              // 模拟同步到其他用户（实际应用中会通过WebSocket发送）
+              setTimeout(() => {
+                  const users = ['张老师', '李老师', '王同学'];
+                  const randomUser = users[Math.floor(Math.random() * users.length)];
+                  if (Math.random() > 0.8) { // 20% 概率其他用户响应
+                      const responses = [
+                          '看到了你的操作',
+                          '这个角度很好',
+                          '让我也试试',
+                          '同步成功'
+                      ];
+                      const response = responses[Math.floor(Math.random() * responses.length)];
+                      addActivityRecord(randomUser, response);
+                  }
+              }, 1000 + Math.random() * 2000);
+          }
+          
+          // 模拟其他用户的3D操作
+          function simulate3DCollaborationOperations() {
+              if (window.__hiecRealtimeConnected) return;
+              const operations = [
+                  { user: '张老师', action: '旋转了分子结构', color: '#3498db' },
+                  { user: '李老师', action: '调整了视角', color: '#e74c3c' },
+                  { user: '王同学', action: '缩放了模型', color: '#2ecc71' },
+                  { user: '张老师', action: '重置了视图', color: '#3498db' },
+                  { user: '李老师', action: '选择了原子', color: '#e74c3c' }
+              ];
+              
+              if (Math.random() > 0.6) { // 40% 概率发生协作操作
+                  const operation = operations[Math.floor(Math.random() * operations.length)];
+                  const x = Math.random() * (window.innerWidth - 200) + 100;
+                  const y = Math.random() * (window.innerHeight - 200) + 100;
+                  
+                  showOperationIndicator(x, y, `${operation.user} ${operation.action}`, operation.color);
+                  addActivityRecord(operation.user, operation.action);
+                  
+                  // 模拟3D模型的实际变化
+                  if (typeof moleculeGroup !== 'undefined' && moleculeGroup && Math.random() > 0.7) {
+                      simulateModelChange(operation.action);
+                  }
+              }
+          }
+          
+          // 模拟模型变化
+          function simulateModelChange(action) {
+              if (!window.THREE || typeof moleculeGroup === 'undefined' || !moleculeGroup) return;
+              
+              if (action.includes('旋转')) {
+                  // 轻微旋转
+                  const targetRotation = {
+                      x: moleculeGroup.rotation.x + (Math.random() - 0.5) * 0.3,
+                      y: moleculeGroup.rotation.y + (Math.random() - 0.5) * 0.3
+                  };
+                  animateToRotation(targetRotation);
+              } else if (action.includes('缩放')) {
+                  // 轻微缩放
+                  const currentScale = moleculeGroup.scale.x;
+                  const targetScale = Math.max(0.5, Math.min(2.0, currentScale + (Math.random() - 0.5) * 0.2));
+                  animateToScale(targetScale);
+              } else if (action.includes('重置')) {
+                  // 重置到初始状态
+                  animateToRotation({ x: 0, y: 0 });
+                  animateToScale(1.0);
+              }
+          }
+          
+          // 动画到目标缩放
+          function animateToScale(targetScale) {
+              if (!window.THREE || typeof moleculeGroup === 'undefined' || !moleculeGroup) return;
+              
+              const startScale = moleculeGroup.scale.x;
+              const duration = 800;
+              const startTime = Date.now();
+              
+              function animate() {
+                  const elapsed = Date.now() - startTime;
+                  const progress = Math.min(elapsed / duration, 1);
+                  const easeProgress = 1 - Math.pow(1 - progress, 3);
+                  
+                  const currentScale = startScale + (targetScale - startScale) * easeProgress;
+                  moleculeGroup.scale.set(currentScale, currentScale, currentScale);
+                  
+                  if (typeof renderThree === 'function') {
+                      renderThree();
+                  }
+                  
+                  if (progress < 1) {
+                      requestAnimationFrame(animate);
+                  }
+              }
+              
+              animate();
+          }
+          
+          // 协作锁定功能
+          let isModelLocked = false;
+          let lockedBy = null;
+          
+          function lockModel(userName) {
+              if (!isModelLocked) {
+                  isModelLocked = true;
+                  lockedBy = userName;
+                  addActivityRecord(userName, '锁定了3D模型编辑');
+                  
+                  // 禁用3D交互
+                  const canvas = document.querySelector('canvas');
+                  if (canvas) {
+                      canvas.style.pointerEvents = userName === '你' ? 'auto' : 'none';
+                  }
+                  
+                  return true;
+              }
+              return false;
+          }
+          
+          function unlockModel(userName) {
+              if (isModelLocked && (lockedBy === userName || userName === '你')) {
+                  isModelLocked = false;
+                  lockedBy = null;
+                  addActivityRecord(userName, '解锁了3D模型编辑');
+                  
+                  // 恢复3D交互
+                  const canvas = document.querySelector('canvas');
+                  if (canvas) {
+                      canvas.style.pointerEvents = 'auto';
+                  }
+                  
+                  return true;
+              }
+              return false;
+          }
+          
+          // 协作标注功能
+          const collaborationAnnotations = [];
+          
+          function addCollaborationAnnotation(x, y, z, text, userName, color) {
+              const annotation = {
+                  id: Date.now() + Math.random(),
+                  position: { x, y, z },
+                  text: text,
+                  userName: userName,
+                  color: color,
+                  timestamp: new Date()
+              };
+              
+              collaborationAnnotations.push(annotation);
+              renderAnnotation(annotation);
+              addActivityRecord(userName, `添加了标注: ${text}`);
+          }
+          
+          function renderAnnotation(annotation) {
+              // 创建标注元素
+              const annotationElement = document.createElement('div');
+              annotationElement.className = 'collaboration-annotation';
+              annotationElement.id = `annotation-${annotation.id}`;
+              annotationElement.style.cssText = `
+                  position: absolute;
+                  background: ${annotation.color};
+                  color: white;
+                  padding: 4px 8px;
+                  border-radius: 4px;
+                  font-size: 12px;
+                  pointer-events: none;
+                  z-index: 100;
+                  max-width: 150px;
+                  word-wrap: break-word;
+              `;
+              const author = document.createElement('div');
+              author.style.cssText = 'font-weight: bold; font-size: 10px;';
+              author.textContent = annotation.userName;
+              const content = document.createElement('div');
+              content.textContent = annotation.text;
+              annotationElement.append(author, content);
+              
+              document.body.appendChild(annotationElement);
+              
+              // 计算屏幕位置（简化版本）
+              const screenX = window.innerWidth * 0.5 + annotation.position.x * 100;
+              const screenY = window.innerHeight * 0.5 - annotation.position.y * 100;
+              
+              annotationElement.style.left = Math.max(0, Math.min(window.innerWidth - 150, screenX)) + 'px';
+              annotationElement.style.top = Math.max(0, Math.min(window.innerHeight - 50, screenY)) + 'px';
+              
+              // 5秒后淡出
+              setTimeout(() => {
+                  if (annotationElement.parentNode) {
+                      annotationElement.style.opacity = '0';
+                      annotationElement.style.transition = 'opacity 0.5s ease';
+                      setTimeout(() => {
+                          if (annotationElement.parentNode) {
+                              annotationElement.remove();
+                          }
+                      }, 500);
+                  }
+              }, 5000);
+          }
+          
+          // 模拟协作标注
+          function simulateCollaborationAnnotations() {
+              if (window.__hiecRealtimeConnected) return;
+              const annotations = [
+                  { text: '这是碳原子', user: '张老师', color: '#3498db' },
+                  { text: '注意这个键角', user: '李老师', color: '#e74c3c' },
+                  { text: '氢原子位置', user: '王同学', color: '#2ecc71' },
+                  { text: '分子中心', user: '张老师', color: '#3498db' }
+              ];
+              
+              if (Math.random() > 0.85) { // 15% 概率添加标注
+                  const annotation = annotations[Math.floor(Math.random() * annotations.length)];
+                  const x = (Math.random() - 0.5) * 2;
+                  const y = (Math.random() - 0.5) * 2;
+                  const z = (Math.random() - 0.5) * 2;
+                  
+                  addCollaborationAnnotation(x, y, z, annotation.text, annotation.user, annotation.color);
+              }
+          }
+      </script>
+      <script src="scripts/realtime-collaboration.js"></script>
+  </body>
+  </html>
+

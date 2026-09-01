@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: hiec-technical-optimized
+    runtime: node
+    rootDir: 应用
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: HIEC_AI_MODE
+        value: offline

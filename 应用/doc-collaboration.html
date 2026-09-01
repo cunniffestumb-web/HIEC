@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档协作 - 全息智能教育云</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <style>
+        .doc-container {
+            display: flex;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+            z-index: 1000;
+        }
+
+        .back-button i {
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .back-button:hover i {
+            transform: translateX(-5px);
+        }
+
+        .back-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .main-editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-header {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .editor-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .editor-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            min-width: 120px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-btn i {
+            font-size: 16px;
+            opacity: 1;
+            transition: transform 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .action-btn:hover i {
+            transform: scale(1.1);
+        }
+        
+        .action-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-btn.primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: none;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+        
+        .action-btn.primary:hover {
+            background: linear-gradient(135deg, #3498db, #2475a7);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.5);
+        }
+        
+        .action-btn.primary:active {
+            background: linear-gradient(135deg, #2980b9, #2475a7);
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .toolbar {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-group {
+            display: flex;
+            gap: 2px;
+            margin-right: 15px;
+        }
+        
+        .toolbar-btn {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .toolbar-btn.active {
+            background: #3498db;
+        }
+        
+        .toolbar-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            padding: 6px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .editor-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+        
+        .document-area {
+            flex: 1;
+            background: white;
+            margin: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .document-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            background: #f8f9fa;
+        }
+        
+        .document-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            border: none;
+            background: transparent;
+            width: 100%;
+        }
+        
+        .document-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .document-body {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .document-editor {
+            min-height: 100%;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .cursor-indicator {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: #3498db;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .selection-highlight {
+            border-bottom: 0px solid #3498db;
+            position: absolute;
+            pointer-events: none;
+        }
+        
+        .comment-thread {
+            position: absolute;
+            right: -300px;
+            width: 280px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            color: #333;
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .comment-title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .comment-close {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .comment-item {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .comment-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .comment-content {
+            flex: 1;
+        }
+        
+        .comment-author {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .comment-text {
+            font-size: 12px;
+            line-height: 1.4;
+            margin-bottom: 3px;
+        }
+        
+        .comment-time {
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .comment-input {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .comment-textarea {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 12px;
+            resize: none;
+            height: 60px;
+        }
+        
+        .comment-submit {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            height: fit-content;
+        }
+        
+        .suggestions-panel {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 280px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+        }
+        
+        .suggestions-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .suggestion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .suggestion-item {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .suggestion-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .suggestion-type {
+            font-size: 10px;
+            color: #3498db;
+            margin-bottom: 3px;
+        }
+        
+        .suggestion-text {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .floating-toolbar {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 6px;
+            padding: 5px;
+            display: none;
+            gap: 2px;
+            z-index: 1000;
+        }
+        
+        .floating-btn {
+            width: 28px;
+            height: 28px;
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        
+        .floating-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        html,
+        body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .doc-container,
+        .main-editor,
+        .editor-content,
+        .document-area {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .main-editor,
+        .editor-content {
+            overflow: hidden;
+        }
+
+        .comment-thread {
+            right: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .doc-container {
+                height: 100dvh;
+                min-height: 100vh;
+            }
+
+            .editor-header {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 12px;
+            }
+
+            .editor-title {
+                flex: 0 0 100%;
+            }
+
+            .editor-actions {
+                width: 100%;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+
+            .action-btn {
+                min-width: 0;
+                width: 100%;
+                justify-content: center;
+                padding: 9px 6px;
+                font-size: 12px;
+            }
+
+            .toolbar {
+                max-height: 104px;
+                overflow-y: auto;
+                padding: 8px 10px;
+                align-content: flex-start;
+            }
+
+            .toolbar-group { margin-right: 0; }
+            .document-area { margin: 12px; }
+            .document-header { padding: 16px; }
+            .document-body { padding: 20px; }
+            .document-title { font-size: 20px; }
+            .document-meta { gap: 8px 12px; flex-wrap: wrap; font-size: 11px; }
+
+            .suggestions-panel {
+                top: 12px;
+                right: 12px;
+                width: calc(100% - 24px);
+                max-height: 30vh;
+                overflow-y: auto;
+            }
+
+            .comment-thread {
+                top: auto !important;
+                right: 12px !important;
+                bottom: 12px !important;
+                left: 12px;
+                width: auto;
+                max-height: 32vh;
+                overflow-y: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="features.html" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        返回功能页面
+    </a>
+    <div class="doc-container">
+
+        
+        <!-- 主编辑器 -->
+        <div class="main-editor">
+            <!-- 编辑器头部 -->
+            <div class="editor-header">
+                <div class="editor-title">
+                    <i class="fas fa-edit"></i>
+                    <span>协作编辑</span>
+                </div>
+                <div class="editor-actions">
+                    <button class="action-btn" title="分享">
+                        <i class="fas fa-share"></i>
+                        分享
+                    </button>
+                    <button class="action-btn" title="导出">
+                        <i class="fas fa-download"></i>
+                        导出
+                    </button>
+                    <button class="action-btn" title="打印">
+                        <i class="fas fa-print"></i>
+                        打印
+                    </button>
+                    <button class="action-btn primary" title="保存">
+                        <i class="fas fa-save"></i>
+                        保存
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 工具栏 -->
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" title="撤销">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button class="toolbar-btn" title="重做">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+                
+                <div class="toolbar-group">
+                    <select class="toolbar-select">
+                        <option>正文</option>
+                        <option>标题1</option>
+                        <option>标题2</option>
+                        <option>标题3</option>
+                    </select>
+                    <select class="toolbar-select">
+                        <option>微软雅黑</option>
+                        <option>宋体</option>
+                        <option>黑体</option>
+                    </select>
+                    <select class="toolbar-select">
+                        <option>14px</option>
+                        <option>12px</option>
+                        <option>16px</option>
+                        <option>18px</option>
+                    </select>
+                </div>
+                
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" title="粗体">
+                        <i class="fas fa-bold"></i>
+                    </button>
+                    <button class="toolbar-btn" title="斜体">
+                        <i class="fas fa-italic"></i>
+                    </button>
+                    <button class="toolbar-btn" title="下划线">
+                        <i class="fas fa-underline"></i>
+                    </button>
+                    <button class="toolbar-btn" title="删除线">
+                        <i class="fas fa-strikethrough"></i>
+                    </button>
+                </div>
+                
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" title="左对齐">
+                        <i class="fas fa-align-left"></i>
+                    </button>
+                    <button class="toolbar-btn" title="居中">
+                        <i class="fas fa-align-center"></i>
+                    </button>
+                    <button class="toolbar-btn" title="右对齐">
+                        <i class="fas fa-align-right"></i>
+                    </button>
+                    <button class="toolbar-btn" title="两端对齐">
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+                
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" title="项目符号">
+                        <i class="fas fa-list-ul"></i>
+                    </button>
+                    <button class="toolbar-btn" title="编号">
+                        <i class="fas fa-list-ol"></i>
+                    </button>
+                    <button class="toolbar-btn" title="缩进">
+                        <i class="fas fa-indent"></i>
+                    </button>
+                    <button class="toolbar-btn" title="减少缩进">
+                        <i class="fas fa-outdent"></i>
+                    </button>
+                </div>
+                
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" title="插入链接">
+                        <i class="fas fa-link"></i>
+                    </button>
+                    <button class="toolbar-btn" title="插入图片">
+                        <i class="fas fa-image"></i>
+                    </button>
+                    <button class="toolbar-btn" title="插入表格">
+                        <i class="fas fa-table"></i>
+                    </button>
+                    <button class="toolbar-btn" title="添加评论">
+                        <i class="fas fa-comment"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 编辑器内容区 -->
+            <div class="editor-content">
+                <div class="document-area">
+                    <div class="document-header">
+                        <input type="text" class="document-title" value="细胞结构与功能研究报告" placeholder="文档标题">
+                        <div class="document-meta">
+                            <span>创建时间：2024年1月15日</span>
+                            <span>最后修改：刚刚</span>
+                            <span>字数：2,847</span>
+                        </div>
+                    </div>
+                    <div class="document-body" id="documentBody">
+                        <div class="document-editor" contenteditable="true" id="documentEditor">
+                            <h2>摘要</h2>
+                            <p>本研究通过显微镜观察和实验分析，深入探讨了细胞的基本结构组成及其功能特点。研究发现，细胞膜作为细胞的边界结构，不仅起到保护作用，还参与物质交换和信息传递。细胞核作为遗传信息的储存中心，控制着细胞的生长、代谢和繁殖。线粒体作为细胞的"能量工厂"，通过呼吸作用为细胞提供ATP。</p>
+                            
+                            <h2>1. 引言</h2>
+                            <p>细胞是生命的基本单位，所有生物都由一个或多个细胞组成。自从1665年罗伯特·胡克首次观察到细胞以来，人类对细胞结构和功能的认识不断深入。现代细胞生物学研究表明，细胞具有高度复杂的内部结构，各种细胞器协调工作，维持着生命活动的正常进行。</p>
+                            
+                            <h2>2. 实验方法</h2>
+                            <p>本实验采用光学显微镜和电子显微镜相结合的方法，观察不同类型细胞的结构特点。实验材料包括洋葱表皮细胞、人体口腔上皮细胞和叶绿体。通过染色技术，我们能够清晰地观察到细胞的各个组成部分。</p>
+                            
+                            <h2>3. 实验结果</h2>
+                            <p>通过显微镜观察，我们发现：</p>
+                            <ul>
+                                <li>植物细胞具有细胞壁、细胞膜、细胞核、叶绿体等结构</li>
+                                <li>动物细胞缺少细胞壁和叶绿体，但具有中心体</li>
+                                <li>所有细胞都含有细胞膜、细胞核和细胞质</li>
+                                <li>线粒体在所有真核细胞中都存在</li>
+                            </ul>
+                            
+                            <h2>4. 讨论</h2>
+                            <p>细胞结构的多样性反映了生物适应环境的结果。植物细胞的细胞壁提供了结构支撑，叶绿体使植物能够进行光合作用。动物细胞的灵活性使其能够进行各种复杂的生理活动。这些结构差异体现了"结构决定功能"的生物学基本原理。</p>
+                            
+                            <h2>5. 结论</h2>
+                            <p>通过本次实验研究，我们加深了对细胞结构与功能关系的理解。细胞作为生命的基本单位，其精密的结构组织和协调的功能活动，为生命现象的产生和维持提供了物质基础。未来的研究应该进一步探索细胞内各种分子机制，为疾病治疗和生物技术发展提供理论支持。</p>
+                        </div>
+                        
+                        <!-- 光标指示器 -->
+                        <div class="cursor-indicator" style="top: 100px; left: 200px;"></div>
+                        
+                        <!-- 选择高亮 -->
+                        <div class="selection-highlight" style="top: 150px; left: 100px; width: 200px; height: 20px;"></div>
+                    </div>
+                </div>
+                
+                <!-- 评论面板 -->
+                <div class="comment-thread" style="top: 200px;">
+                    <div class="comment-header">
+                        <div class="comment-title">评论</div>
+                        <button class="comment-close">&times;</button>
+                    </div>
+                    <div class="comment-list">
+                        <div class="comment-item">
+                            <div class="comment-avatar" style="background: #e74c3c;">李</div>
+                            <div class="comment-content">
+                                <div class="comment-author">李助教</div>
+                                <div class="comment-text">这段描述很准确，建议添加一些具体的数据支撑。</div>
+                                <div class="comment-time">5分钟前</div>
+                            </div>
+                        </div>
+                        <div class="comment-item">
+                            <div class="comment-avatar" style="background: #3498db;">张</div>
+                            <div class="comment-content">
+                                <div class="comment-author">张老师</div>
+                                <div class="comment-text">同意李助教的建议，可以引用一些经典的研究数据。</div>
+                                <div class="comment-time">3分钟前</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comment-input">
+                        <textarea class="comment-textarea" placeholder="添加评论..."></textarea>
+                        <button class="comment-submit">发送</button>
+                    </div>
+                </div>
+                
+                <!-- 建议面板 -->
+                <div class="suggestions-panel">
+                    <div class="suggestions-title">
+                        <i class="fas fa-lightbulb"></i>
+                        智能建议
+                    </div>
+                    <div class="suggestion-list">
+                        <div class="suggestion-item">
+                            <div class="suggestion-type">语法建议</div>
+                            <div class="suggestion-text">建议将"通过显微镜观察"改为"通过显微镜观察发现"</div>
+                        </div>
+                        <div class="suggestion-item">
+                            <div class="suggestion-type">内容建议</div>
+                            <div class="suggestion-text">可以添加细胞器的具体功能描述，使内容更加完整</div>
+                        </div>
+                        <div class="suggestion-item">
+                            <div class="suggestion-type">格式建议</div>
+                            <div class="suggestion-text">建议统一标题格式，使用相同的字体大小</div>
+                        </div>
+                        <div class="suggestion-item">
+                            <div class="suggestion-type">引用建议</div>
+                            <div class="suggestion-text">建议添加相关的参考文献，增强学术性</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 浮动工具栏 -->
+                <div class="floating-toolbar" id="floatingToolbar">
+                    <button class="floating-btn" title="粗体">
+                        <i class="fas fa-bold"></i>
+                    </button>
+                    <button class="floating-btn" title="斜体">
+                        <i class="fas fa-italic"></i>
+                    </button>
+                    <button class="floating-btn" title="下划线">
+                        <i class="fas fa-underline"></i>
+                    </button>
+                    <button class="floating-btn" title="添加评论">
+                        <i class="fas fa-comment"></i>
+                    </button>
+                    <button class="floating-btn" title="添加链接">
+                        <i class="fas fa-link"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 文档编辑器功能
+        const documentEditor = document.getElementById('documentEditor');
+        const floatingToolbar = document.getElementById('floatingToolbar');
+        
+        // 文本选择时显示浮动工具栏
+        document.addEventListener('mouseup', function() {
+            const selection = window.getSelection();
+            if (selection.toString().length > 0) {
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                floatingToolbar.style.display = 'flex';
+                floatingToolbar.style.left = rect.left + 'px';
+                floatingToolbar.style.top = (rect.top - 40) + 'px';
+            } else {
+                floatingToolbar.style.display = 'none';
+            }
+        });
+
+        // 工具栏按钮功能
+        document.querySelectorAll('.toolbar-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('fa-bold')) {
+                    document.execCommand('bold');
+                    this.classList.toggle('active');
+                } else if (icon.classList.contains('fa-italic')) {
+                    document.execCommand('italic');
+                    this.classList.toggle('active');
+                } else if (icon.classList.contains('fa-underline')) {
+                    document.execCommand('underline');
+                    this.classList.toggle('active');
+                } else if (icon.classList.contains('fa-align-left')) {
+                    document.execCommand('justifyLeft');
+                } else if (icon.classList.contains('fa-align-center')) {
+                    document.execCommand('justifyCenter');
+                } else if (icon.classList.contains('fa-align-right')) {
+                    document.execCommand('justifyRight');
+                } else if (icon.classList.contains('fa-list-ul')) {
+                    document.execCommand('insertUnorderedList');
+                } else if (icon.classList.contains('fa-list-ol')) {
+                    document.execCommand('insertOrderedList');
+                }
+            });
+        });
+
+        // 浮动工具栏按钮功能
+        document.querySelectorAll('.floating-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('fa-bold')) {
+                    document.execCommand('bold');
+                } else if (icon.classList.contains('fa-italic')) {
+                    document.execCommand('italic');
+                } else if (icon.classList.contains('fa-underline')) {
+                    document.execCommand('underline');
+                } else if (icon.classList.contains('fa-comment')) {
+                    addComment();
+                } else if (icon.classList.contains('fa-link')) {
+                    const url = prompt('请输入链接地址:');
+                    if (url) {
+                        document.execCommand('createLink', false, url);
+                    }
+                }
+                floatingToolbar.style.display = 'none';
+            });
+        });
+
+        // 添加评论功能
+        function addComment() {
+            const selection = window.getSelection();
+            if (selection.toString().length > 0) {
+                const comment = prompt('请输入评论内容:');
+                if (comment) {
+                    // 在实际应用中，这里会创建评论并保存到服务器
+                    alert(`评论已添加: "${comment}"\n\n在实际应用中，评论会显示在文档旁边的评论面板中。`);
+                }
+            }
+        }
+
+        // 评论提交功能
+        document.querySelector('.comment-submit').addEventListener('click', function() {
+            const textarea = document.querySelector('.comment-textarea');
+            const comment = textarea.value.trim();
+            if (comment) {
+                const commentList = document.querySelector('.comment-list');
+                const commentItem = document.createElement('div');
+                commentItem.className = 'comment-item';
+                
+                const currentTime = new Date().toLocaleTimeString('zh-CN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'comment-avatar';
+                avatar.style.background = '#e74c3c';
+                avatar.textContent = '我';
+                const content = document.createElement('div');
+                content.className = 'comment-content';
+                const author = document.createElement('div');
+                author.className = 'comment-author';
+                author.textContent = '我';
+                const commentText = document.createElement('div');
+                commentText.className = 'comment-text';
+                commentText.textContent = comment;
+                const time = document.createElement('div');
+                time.className = 'comment-time';
+                time.textContent = '刚刚';
+                content.append(author, commentText, time);
+                commentItem.append(avatar, content);
+                
+                commentList.appendChild(commentItem);
+                textarea.value = '';
+            }
+        });
+
+        // 关闭评论面板
+        document.querySelector('.comment-close').addEventListener('click', function() {
+            document.querySelector('.comment-thread').style.display = 'none';
+        });
+
+        // 版本历史点击
+        document.querySelectorAll('.version-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const versionInfo = this.querySelector('.version-info').textContent;
+                alert(`查看版本: ${versionInfo}\n\n在实际应用中，这里会显示该版本的文档内容。`);
+            });
+        });
+
+        // 协作者状态模拟
+        function updateCollaboratorStatus() {
+            const collaborators = document.querySelectorAll('.collaborator-item');
+            const actions = [
+                '正在编辑标题',
+                '添加评论',
+                '查看文档',
+                '编辑第2段',
+                '插入图片',
+                '修改格式',
+                '添加引用'
+            ];
+            
+            collaborators.forEach(collaborator => {
+                if (Math.random() < 0.3) { // 30% 概率更新状态
+                    const actionElement = collaborator.querySelector('.collaborator-action');
+                    const randomAction = actions[Math.floor(Math.random() * actions.length)];
+                    actionElement.textContent = randomAction;
+                }
+            });
+        }
+
+        // 每10秒更新协作者状态
+        setInterval(updateCollaboratorStatus, 10000);
+
+        // 自动保存功能
+        let saveTimeout;
+        documentEditor.addEventListener('input', function() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(function() {
+                // 模拟自动保存
+                console.log('文档已自动保存');
+                // 在实际应用中，这里会将内容保存到服务器
+            }, 2000);
+        });
+
+        // 导出功能
+        document.querySelector('.action-btn[title="导出"]').addEventListener('click', function() {
+            const content = documentEditor.innerHTML;
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '生物课程报告.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // 打印功能
+        document.querySelector('.action-btn[title="打印"]').addEventListener('click', function() {
+            window.print();
+        });
+
+        // 分享功能
+        document.querySelector('.action-btn[title="分享"]').addEventListener('click', function() {
+            const shareUrl = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: '生物课程报告',
+                    text: '细胞结构与功能研究',
+                    url: shareUrl
+                });
+            } else {
+                // 复制链接到剪贴板
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert('分享链接已复制到剪贴板！');
+                });
+            }
+        });
+
+        // 建议面板交互
+        document.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const suggestionText = this.querySelector('.suggestion-text').textContent;
+                if (confirm(`应用建议: ${suggestionText}？`)) {
+                    // 在实际应用中，这里会应用相应的建议
+                    this.style.opacity = '0.5';
+                    this.style.pointerEvents = 'none';
+                    setTimeout(() => {
+                        this.remove();
+                    }, 500);
+                }
+            });
+        });
+
+        // 模拟实时协作光标
+        function updateCursor() {
+            const cursor = document.querySelector('.cursor-indicator');
+            const randomTop = Math.random() * 400 + 100;
+            const randomLeft = Math.random() * 300 + 50;
+            
+            cursor.style.top = randomTop + 'px';
+            cursor.style.left = randomLeft + 'px';
+        }
+
+        // 每5秒更新光标位置
+        setInterval(updateCursor, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>屏幕共享 - 全息智能教育云</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <style>
+        .screen-share-container {
+            display: flex;
+            height: 100vh;
+            background: #1a1a1a;
+            color: white;
+        }
+        
+        .main-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .screen-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .screen-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .presenter-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .screen-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .shared-screen {
+            flex: 1;
+            background: #000;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .screen-content {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .demo-presentation {
+            width: 80%;
+            height: 80%;
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .slide-title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+        
+        .slide-content {
+            font-size: 18px;
+            line-height: 1.6;
+            max-width: 600px;
+        }
+        
+        .slide-image {
+            width: 300px;
+            height: 200px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #95a5a6;
+        }
+        
+        .screen-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(231, 76, 60, 0.9);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .screen-capture-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #111827;
+            border-radius: 10px;
+        }
+        
+        .recording-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: #2c3e50;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .participants-section {
+            flex: 1;
+            padding: 20px;
+        }
+        
+        .participant-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        
+        .participant-avatar-small {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .participant-info {
+            flex: 1;
+        }
+        
+        .participant-name {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .participant-status {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .sharing-indicator {
+            color: #e74c3c;
+        }
+        
+        .chat-section {
+            height: 300px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        .message-sender {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .send-btn {
+            padding: 8px 12px;
+            background: #3498db;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .bottom-controls {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .share-btn {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .stop-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 700px) {
+            html,
+            body {
+                overflow-x: hidden;
+            }
+
+            .screen-share-container {
+                display: block;
+                height: auto;
+                min-height: 100dvh;
+                overflow-y: auto;
+            }
+
+            .main-screen {
+                width: 100%;
+                min-width: 0;
+                height: 70vh;
+                min-height: 520px;
+                padding: 12px;
+            }
+
+            .screen-header {
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 12px;
+                padding: 10px 12px;
+            }
+
+            .screen-info { min-width: 0; }
+            .screen-controls { margin-left: auto; gap: 5px; }
+            .control-btn { padding: 7px 9px; }
+            .demo-presentation {
+                width: 94%;
+                height: 90%;
+                padding: 16px;
+                overflow-y: auto;
+            }
+
+            .slide-title { font-size: 24px; margin-bottom: 14px; }
+            .slide-image { width: min(220px, 90%); height: 140px; margin: 12px 0; font-size: 36px; }
+            .slide-content { font-size: 15px; }
+
+            .sidebar {
+                width: 100%;
+                min-width: 0;
+                height: auto;
+            }
+
+            .participants-section {
+                max-height: 220px;
+                overflow-y: auto;
+                padding: 14px;
+            }
+
+            .chat-section { height: 260px; padding: 14px; }
+            .bottom-controls { padding: 12px; }
+            .bottom-controls .action-btn { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="screen-share-container">
+        <div class="main-screen">
+            <!-- 屏幕头部 -->
+            <div class="screen-header">
+                <div class="screen-info">
+                    <div class="presenter-avatar">张</div>
+                    <div>
+                        <div>张老师正在共享屏幕</div>
+                        <small style="opacity: 0.7;">生物课 - 细胞结构讲解</small>
+                    </div>
+                </div>
+                <div class="screen-controls">
+                    <button class="control-btn" title="全屏">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <button class="control-btn" title="录制">
+                        <i class="fas fa-record-vinyl"></i>
+                    </button>
+                    <button class="control-btn" title="截图">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                    <button class="control-btn" title="设置">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 共享屏幕区域 -->
+            <div class="shared-screen">
+                <div class="screen-content">
+                    <div class="demo-presentation">
+                        <div class="slide-title">细胞的基本结构</div>
+                        <div class="slide-image">
+                            <i class="fas fa-microscope"></i>
+                        </div>
+                        <div class="slide-content">
+                            <p>细胞是生物体结构和功能的基本单位。每个细胞都包含以下主要组成部分：</p>
+                            <ul style="text-align: left; margin-top: 20px;">
+                                <li>细胞膜 - 控制物质进出</li>
+                                <li>细胞质 - 细胞内的液体环境</li>
+                                <li>细胞核 - 控制中心</li>
+                                <li>线粒体 - 能量工厂</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="screen-overlay">
+                    <div class="recording-dot"></div>
+                    <span>正在共享</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <!-- 参与者列表 -->
+            <div class="participants-section">
+                <h3 style="margin-bottom: 15px;">参与者 (8)</h3>
+                
+                <div class="participant-item">
+                    <div class="participant-avatar-small">张</div>
+                    <div class="participant-info">
+                        <div class="participant-name">张老师</div>
+                        <div class="participant-status sharing-indicator">
+                            <i class="fas fa-desktop"></i> 正在共享
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="participant-item">
+                    <div class="participant-avatar-small">李</div>
+                    <div class="participant-info">
+                        <div class="participant-name">李同学</div>
+                        <div class="participant-status">观看中</div>
+                    </div>
+                </div>
+                
+                <div class="participant-item">
+                    <div class="participant-avatar-small">王</div>
+                    <div class="participant-info">
+                        <div class="participant-name">王同学</div>
+                        <div class="participant-status">观看中</div>
+                    </div>
+                </div>
+                
+                <div class="participant-item">
+                    <div class="participant-avatar-small">赵</div>
+                    <div class="participant-info">
+                        <div class="participant-name">赵同学</div>
+                        <div class="participant-status">观看中</div>
+                    </div>
+                </div>
+                
+                <div class="participant-item">
+                    <div class="participant-avatar-small">刘</div>
+                    <div class="participant-info">
+                        <div class="participant-name">刘同学</div>
+                        <div class="participant-status">观看中</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 聊天区域 -->
+            <div class="chat-section">
+                <h4 style="margin-bottom: 10px;">实时讨论</h4>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-message">
+                        <div class="message-sender">李同学</div>
+                        <div>老师，线粒体的结构能详细讲解一下吗？</div>
+                    </div>
+                    <div class="chat-message">
+                        <div class="message-sender">张老师</div>
+                        <div>好的，我们下一页会详细介绍</div>
+                    </div>
+                    <div class="chat-message">
+                        <div class="message-sender">王同学</div>
+                        <div>这个图很清楚，谢谢老师</div>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" class="chat-input" placeholder="输入消息..." id="messageInput">
+                    <button class="send-btn" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 底部控制 -->
+            <div class="bottom-controls">
+                <button class="action-btn share-btn" onclick="startShare()">
+                    <i class="fas fa-desktop"></i> 共享我的屏幕
+                </button>
+                <button class="action-btn stop-btn" onclick="window.history.back()">
+                    <i class="fas fa-times"></i> 退出
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 发送消息功能
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (message) {
+                const chatMessages = document.getElementById('chatMessages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'chat-message';
+                const sender = document.createElement('div');
+                sender.className = 'message-sender';
+                sender.textContent = '我';
+                const content = document.createElement('div');
+                content.textContent = message;
+                content.style.whiteSpace = 'pre-wrap';
+                messageDiv.append(sender, content);
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                input.value = '';
+            }
+        }
+
+        // 回车发送消息
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 使用浏览器 Screen Capture API；浏览器不支持时保留演示页。
+        let screenStream = null;
+        async function startShare() {
+            if (screenStream) {
+                screenStream.getTracks().forEach(track => track.stop());
+                screenStream = null;
+                updateSlide();
+                document.querySelector('.share-btn').innerHTML = '<i class="fas fa-desktop"></i> 共享我的屏幕';
+                return;
+            }
+            if (!navigator.mediaDevices?.getDisplayMedia) {
+                document.querySelector('.share-btn').textContent = '当前浏览器不支持屏幕采集';
+                return;
+            }
+            try {
+                screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+                const presentation = document.querySelector('.demo-presentation');
+                const video = document.createElement('video');
+                video.className = 'screen-capture-video';
+                video.autoplay = true;
+                video.playsInline = true;
+                video.srcObject = screenStream;
+                presentation.replaceChildren(video);
+                document.querySelector('.share-btn').innerHTML = '<i class="fas fa-stop"></i> 停止屏幕共享';
+                screenStream.getVideoTracks()[0].addEventListener('ended', () => startShare());
+            } catch (error) {
+                screenStream = null;
+                document.querySelector('.share-btn').textContent = error.name === 'NotAllowedError'
+                    ? '已取消屏幕共享'
+                    : '屏幕共享启动失败';
+            }
+        }
+
+        // 模拟幻灯片切换
+        const slides = [
+            {
+                title: "细胞的基本结构",
+                content: "细胞是生物体结构和功能的基本单位。每个细胞都包含以下主要组成部分：",
+                items: ["细胞膜 - 控制物质进出", "细胞质 - 细胞内的液体环境", "细胞核 - 控制中心", "线粒体 - 能量工厂"],
+                icon: "fas fa-microscope"
+            },
+            {
+                title: "线粒体的结构与功能",
+                content: "线粒体被称为细胞的'能量工厂'，负责产生ATP为细胞提供能量：",
+                items: ["双分子膜结构", "内膜形成嵴状结构", "基质含有酶系统", "进行有氧呼吸"],
+                icon: "fas fa-battery-full"
+            },
+            {
+                title: "细胞核的重要性",
+                content: "细胞核是细胞的控制中心，包含遗传物质DNA：",
+                items: ["核膜控制物质交换", "染色质含有遗传信息", "核仁参与蛋白质合成", "调控细胞活动"],
+                icon: "fas fa-dna"
+            }
+        ];
+
+        let currentSlide = 0;
+
+        function updateSlide() {
+            if (screenStream) return;
+            const slide = slides[currentSlide];
+            const presentation = document.querySelector('.demo-presentation');
+            
+            presentation.innerHTML = `
+                <div class="slide-title">${slide.title}</div>
+                <div class="slide-image">
+                    <i class="${slide.icon}"></i>
+                </div>
+                <div class="slide-content">
+                    <p>${slide.content}</p>
+                    <ul style="text-align: left; margin-top: 20px;">
+                        ${slide.items.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        // 自动切换幻灯片
+        setInterval(() => {
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateSlide();
+        }, 8000);
+
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                currentSlide = (currentSlide + 1) % slides.length;
+                updateSlide();
+            } else if (e.key === 'ArrowLeft') {
+                currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                updateSlide();
+            }
+        });
+    </script>
+</body>
+</html>

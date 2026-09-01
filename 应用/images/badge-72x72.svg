@@ -1,0 +1,27 @@
+<svg width="72" height="72" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="badgeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ee5a24;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景圆形 -->
+  <circle cx="36" cy="36" r="32" fill="url(#badgeGradient)" stroke="#ffffff" stroke-width="2"/>
+  
+  <!-- 通知图标 -->
+  <g transform="translate(36,36)">
+    <!-- 铃铛主体 -->
+    <path d="M-8,-12 Q-8,-16 -4,-16 L4,-16 Q8,-16 8,-12 L8,-4 Q8,0 4,0 L-4,0 Q-8,0 -8,-4 Z" fill="#ffffff"/>
+    
+    <!-- 铃铛顶部 -->
+    <rect x="-2" y="-18" width="4" height="4" rx="2" fill="#ffffff"/>
+    
+    <!-- 铃铛底部波纹 -->
+    <path d="M-10,2 Q0,8 10,2" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    
+    <!-- 通知点 -->
+    <circle cx="8" cy="-8" r="4" fill="#ffffff" stroke="#ff6b6b" stroke-width="1"/>
+    <text x="8" y="-6" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#ff6b6b">!</text>
+  </g>
+</svg>

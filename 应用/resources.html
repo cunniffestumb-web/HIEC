@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目资料 - 全息智能教育云</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <style>
+        .page-resources {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .resource-section {
+            padding: 80px 0;
+            position: relative;
+        }
+        
+        .resource-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .resource-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .resource-subtitle {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.9);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .resource-nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .nav-tab {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-tab:hover,
+        .nav-tab.active {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .content-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 15px;
+        }
+        
+        .card-description {
+            color: rgba(255,255,255,0.8);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .card-features {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        
+        .card-features li {
+            color: rgba(255,255,255,0.9);
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .card-features li:before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+        
+        .implementation-timeline {
+            position: relative;
+            padding: 40px 0;
+        }
+        
+        .timeline-item {
+            display: flex;
+            margin-bottom: 40px;
+            align-items: flex-start;
+        }
+        
+        .timeline-marker {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-right: 30px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .timeline-content {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            flex: 1;
+        }
+        
+        .timeline-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-period {
+            color: #4ecdc4;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .budget-overview {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 40px;
+        }
+        
+        .budget-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .budget-item {
+            text-align: center;
+        }
+        
+        .budget-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+        
+        .budget-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .team-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+        }
+        
+        .team-role {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .team-count {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4ecdc4;
+            margin-bottom: 15px;
+        }
+        
+        .risk-matrix {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .risk-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .risk-level {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .risk-high {
+            background: rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+        
+        .risk-medium {
+            background: rgba(254, 202, 87, 0.3);
+            color: #feca57;
+            border: 1px solid #feca57;
+        }
+        
+        .risk-low {
+            background: rgba(78, 205, 196, 0.3);
+            color: #4ecdc4;
+            border: 1px solid #4ecdc4;
+        }
+        
+        .search-container {
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .search-box {
+            background: rgba(255,255,255,0.1);
+            border-radius: 50px;
+            padding: 15px 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .search-box i {
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+        }
+        
+        .search-box input {
+            background: none;
+            border: none;
+            color: white;
+            flex: 1;
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        .search-box input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .search-box select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box select:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .search-box select option {
+            background: #333;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .resource-title {
+                font-size: 2.5rem;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .timeline-marker {
+                margin: 0 auto 20px;
+            }
+            
+            .search-box {
+                flex-direction: column;
+                gap: 10px;
+                padding: 20px;
+            }
+            
+            .search-box select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="other-page">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-brain"></i>
+                <span>全息智能教育云</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">首页</a></li>
+                <li><a href="architecture.html" class="nav-link">技术架构</a></li>
+                <li><a href="scenarios.html" class="nav-link">应用场景</a></li>
+                <li><a href="resources.html" class="nav-link active">项目资料</a></li>
+                <li><a href="team.html" class="nav-link">团队介绍</a></li>
+                <li><a href="contact.html" class="nav-link">联系我们</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="main-content">
+        <section class="resource-section">
+            <div class="container">
+                <div class="resource-header">
+                    <h1 class="resource-title">AI沉浸式教育详细实施方案</h1>
+                    <p class="resource-subtitle">全息智能教育云项目的完整实施计划、技术架构、团队配置和预算规划</p>
+                </div>
+
+                <!-- 搜索功能 -->
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="resourceSearch" placeholder="搜索API、SDK、文档...">
+                        <select id="categoryFilter">
+                            <option value="all">全部分类</option>
+                            <option value="api-docs">API文档</option>
+                            <option value="sdk-downloads">SDK下载</option>
+                            <option value="dev-guide">开发者指南</option>
+                            <option value="architecture">技术架构</option>
+                            <option value="code-examples">代码示例</option>
+                            <option value="tutorials">视频教程</option>
+                            <option value="community">开发者社区</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 导航标签 -->
+                <div class="resource-nav">
+                    <button class="nav-tab active" onclick="showTab('api-docs')">API文档</button>
+                    <button class="nav-tab" onclick="showTab('sdk-downloads')">SDK下载</button>
+                    <button class="nav-tab" onclick="showTab('dev-guide')">开发者指南</button>
+                    <button class="nav-tab" onclick="showTab('architecture')">技术架构</button>
+                    <button class="nav-tab" onclick="showTab('code-examples')">代码示例</button>
+                    <button class="nav-tab" onclick="showTab('tutorials')">视频教程</button>
+                    <button class="nav-tab" onclick="showTab('community')">开发者社区</button>
+                </div>
+
+                <!-- API文档 -->
+                <div id="api-docs" class="tab-content active">
+                    <div class="content-grid">
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <h3 class="card-title">核心API接口</h3>
+                            <p class="card-description">全息智能教育云平台提供完整的RESTful API接口</p>
+                            <ul class="card-features">
+                                <li>用户认证与授权 API</li>
+                                <li>学习内容管理 API</li>
+                                <li>AI智能服务 API</li>
+                                <li>评估与分析 API</li>
+                                <li>实时通信 WebSocket API</li>
+                            </ul>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">查看完整API文档</button>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h3 class="card-title">认证与安全</h3>
+                            <p class="card-description">基于JWT的安全认证机制</p>
+                            <ul class="card-features">
+                                <li>OAuth 2.0 标准认证</li>
+                                <li>JWT Token 访问控制</li>
+                                <li>API Rate Limiting</li>
+                                <li>HTTPS 加密传输</li>
+                                <li>角色权限管理</li>
+                            </ul>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #ff6b6b, #feca57); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">获取API密钥</button>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h3 class="card-title">数据模型</h3>
+                            <p class="card-description">完整的数据库设计和模型定义</p>
+                            <ul class="card-features">
+                                <li>用户与权限模型</li>
+                                <li>课程与内容模型</li>
+                                <li>学习进度追踪</li>
+                                <li>评估结果存储</li>
+                                <li>交互日志记录</li>
+                            </ul>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">下载数据模型</button>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h3 class="card-title">AI服务接口</h3>
+                            <p class="card-description">智能化教育服务API集成</p>
+                            <ul class="card-features">
+                                <li>个性化推荐算法</li>
+                                <li>智能对话服务</li>
+                                <li>学习路径规划</li>
+                                <li>认知状态分析</li>
+                                <li>情感计算接口</li>
+                            </ul>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #a8edea, #fed6e3); color: #333; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">测试AI接口</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SDK下载 -->
+                <div id="sdk-downloads" class="tab-content">
+                    <div class="content-grid">
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fab fa-js-square"></i>
+                            </div>
+                            <h3 class="card-title">JavaScript SDK</h3>
+                            <p class="card-description">前端开发工具包，支持React、Vue、Angular等框架</p>
+                            <ul class="card-features">
+                                <li>完整的TypeScript类型定义</li>
+                                <li>Three.js 3D渲染集成</li>
+                                <li>WebXR VR/AR支持</li>
+                                <li>实时通信WebSocket</li>
+                                <li>AI服务客户端</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button onclick="trackDownload('javascript-sdk', 'v2.1.0')" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">下载 v2.1.0</button>
+                                <span data-download-counter="javascript-sdk" style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">下载次数: 15,432</span>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fab fa-node-js"></i>
+                            </div>
+                            <h3 class="card-title">Node.js SDK</h3>
+                            <p class="card-description">服务端开发工具包，支持Express、Koa等框架</p>
+                            <ul class="card-features">
+                                <li>完整的API客户端封装</li>
+                                <li>数据库ORM集成</li>
+                                <li>AI服务调用封装</li>
+                                <li>认证中间件</li>
+                                <li>日志与监控工具</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button onclick="trackDownload('nodejs-sdk', 'v1.8.3')" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">下载 v1.8.3</button>
+                                <span data-download-counter="nodejs-sdk" style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">下载次数: 8,921</span>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fab fa-python"></i>
+                            </div>
+                            <h3 class="card-title">Python SDK</h3>
+                            <p class="card-description">AI算法开发工具包，支持机器学习和数据分析</p>
+                            <ul class="card-features">
+                                <li>TensorFlow/PyTorch集成</li>
+                                <li>数据预处理工具</li>
+                                <li>模型训练框架</li>
+                                <li>认知分析算法</li>
+                                <li>可视化工具</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button onclick="trackDownload('python-sdk', 'v3.2.1')" style="background: linear-gradient(135deg, #fa709a, #fee140); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">下载 v3.2.1</button>
+                                <span data-download-counter="python-sdk" style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">下载次数: 12,156</span>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fab fa-unity"></i>
+                            </div>
+                            <h3 class="card-title">Unity插件</h3>
+                            <p class="card-description">Unity 3D开发插件，支持VR/AR应用开发</p>
+                            <ul class="card-features">
+                                <li>全息显示组件</li>
+                                <li>交互控制器</li>
+                                <li>网络同步功能</li>
+                                <li>AI服务集成</li>
+                                <li>性能优化工具</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button onclick="trackDownload('unity-plugin', 'v1.5.2')" style="background: linear-gradient(135deg, #a8edea, #fed6e3); color: #333; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">下载 v1.5.2</button>
+                                <span data-download-counter="unity-plugin" style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">下载次数: 6,743</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 开发者指南 -->
+                <div id="dev-guide" class="tab-content">
+                    <div class="content-grid">
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <h3 class="card-title">快速开始</h3>
+                            <p class="card-description">5分钟快速集成全息智能教育云平台</p>
+                            <ul class="card-features">
+                                <li>环境配置与依赖安装</li>
+                                <li>API密钥获取与配置</li>
+                                <li>第一个Hello World示例</li>
+                                <li>基础功能集成测试</li>
+                                <li>常见问题解决方案</li>
+                            </ul>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">开始教程</button>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <h3 class="card-title">开发文档</h3>
+                            <p class="card-description">完整的开发文档和最佳实践指南</p>
+                            <ul class="card-features">
+                                <li>架构设计原理</li>
+                                <li>API接口详细说明</li>
+                                <li>SDK使用指南</li>
+                                <li>性能优化建议</li>
+                                <li>安全开发规范</li>
+                            </ul>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #ff6b6b, #feca57); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">查看文档</button>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-tools"></i>
+                            </div>
+                            <h3 class="card-title">开发工具</h3>
+                            <p class="card-description">提升开发效率的专业工具集</p>
+                            <ul class="card-features">
+                                <li>API调试工具</li>
+                                <li>3D内容编辑器</li>
+                                <li>性能监控面板</li>
+                                <li>日志分析工具</li>
+                                <li>自动化测试框架</li>
+                            </ul>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">下载工具</button>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <h3 class="card-title">学习路径</h3>
+                            <p class="card-description">从入门到精通的完整学习路径</p>
+                            <ul class="card-features">
+                                <li>基础概念与原理</li>
+                                <li>实战项目练习</li>
+                                <li>高级特性应用</li>
+                                <li>性能优化技巧</li>
+                                <li>企业级应用案例</li>
+                            </ul>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #a8edea, #fed6e3); color: #333; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">开始学习</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技术架构 -->
+                <div id="architecture" class="tab-content">
+                    <div class="content-grid">
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <h3 class="card-title">用户交互层</h3>
+                            <p class="card-description">全息显示界面、AR/VR界面和Web界面</p>
+                            <ul class="card-features">
+                                <li>React 18 + TypeScript前端框架</li>
+                                <li>Three.js + WebGL2 3D渲染</li>
+                                <li>WebXR VR/AR支持</li>
+                                <li>TailwindCSS响应式设计</li>
+                                <li>实时WebSocket通信</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <h3 class="card-title">业务逻辑层</h3>
+                            <p class="card-description">教学管理、学习管理、用户管理模块</p>
+                            <ul class="card-features">
+                                <li>Node.js + Express后端服务</li>
+                                <li>微服务架构设计</li>
+                                <li>API网关统一入口</li>
+                                <li>Redis缓存优化</li>
+                                <li>JWT认证授权</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h3 class="card-title">AI智能层</h3>
+                            <p class="card-description">认知引擎、推荐系统、自然语言处理</p>
+                            <ul class="card-features">
+                                <li>OpenAI GPT-4集成</li>
+                                <li>自研认知适应引擎</li>
+                                <li>个性化推荐算法</li>
+                                <li>情感计算模块</li>
+                                <li>学习路径优化</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h3 class="card-title">数据服务层</h3>
+                            <p class="card-description">数据存储、向量数据库、实时数据处理</p>
+                            <ul class="card-features">
+                                <li>Supabase PostgreSQL数据库</li>
+                                <li>Pinecone向量数据库</li>
+                                <li>Redis内存缓存</li>
+                                <li>实时数据同步</li>
+                                <li>数据备份与恢复</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <h3 class="card-title">基础设施层</h3>
+                            <p class="card-description">云计算、容器化部署、监控运维</p>
+                            <ul class="card-features">
+                                <li>Docker容器化部署</li>
+                                <li>Kubernetes集群管理</li>
+                                <li>Vercel前端托管</li>
+                                <li>负载均衡与自动扩缩</li>
+                                <li>监控告警系统</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-cube"></i>
+                            </div>
+                            <h3 class="card-title">3D渲染引擎</h3>
+                            <p class="card-description">WebGL/WebGPU高性能3D渲染</p>
+                            <ul class="card-features">
+                                <li>WebGL2/WebGPU双引擎</li>
+                                <li>PBR物理渲染</li>
+                                <li>实时光线追踪</li>
+                                <li>粒子系统</li>
+                                <li>性能优化算法</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 代码示例 -->
+                <div id="code-examples" class="tab-content">
+                    <div class="content-grid">
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <h3 class="card-title">快速集成示例</h3>
+                            <p class="card-description">5分钟快速集成HIEC平台的完整示例</p>
+                            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 15px 0; font-family: 'Courier New', monospace; font-size: 0.9rem; color: #4ecdc4; overflow-x: auto;">
+                                <pre>// 初始化HIEC客户端
+import { HIECClient } from '@hiec/sdk';
+
+const client = new HIECClient({
+  apiKey: 'your-api-key',
+  endpoint: 'https://api.hiec.com'
+});
+
+// 创建3D学习场景
+const scene = await client.createScene({
+  type: 'holographic',
+  subject: 'physics',
+  level: 'intermediate'
+});</pre>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">查看完整代码</button>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-cube"></i>
+                            </div>
+                            <h3 class="card-title">3D内容创建</h3>
+                            <p class="card-description">使用Three.js创建交互式3D教学内容</p>
+                            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 15px 0; font-family: 'Courier New', monospace; font-size: 0.9rem; color: #4ecdc4; overflow-x: auto;">
+                                <pre>// 创建3D分子模型
+const molecule = new HIEC.Molecule({
+  formula: 'H2O',
+  interactive: true,
+  animation: 'rotation'
+});
+
+// 添加到场景
+scene.add(molecule);
+
+// 绑定交互事件
+molecule.onClick((atom) => {
+  showAtomInfo(atom);
+});</pre>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #ff6b6b, #feca57); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">运行示例</button>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h3 class="card-title">AI智能对话</h3>
+                            <p class="card-description">集成AI助教进行智能问答</p>
+                            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 15px 0; font-family: 'Courier New', monospace; font-size: 0.9rem; color: #4ecdc4; overflow-x: auto;">
+                                <pre>// AI助教对话
+const aiTutor = new HIEC.AITutor({
+  personality: 'friendly',
+  expertise: ['physics', 'chemistry'],
+  language: 'zh-CN'
+});
+
+// 发送学生问题
+const response = await aiTutor.ask(
+  '请解释一下牛顿第二定律',
+  { context: currentLesson }
+);</pre>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">体验AI对话</button>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3 class="card-title">学习分析</h3>
+                            <p class="card-description">实时学习数据分析和可视化</p>
+                            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 15px 0; font-family: 'Courier New', monospace; font-size: 0.9rem; color: #4ecdc4; overflow-x: auto;">
+                                <pre>// 获取学习分析数据
+const analytics = await client.getAnalytics({
+  userId: 'student-123',
+  timeRange: '7d',
+  metrics: ['engagement', 'progress']
+});
+
+// 生成可视化图表
+const chart = new HIEC.Chart({
+  type: 'progress',
+  data: analytics.progress
+});</pre>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <button style="background: linear-gradient(135deg, #a8edea, #fed6e3); color: #333; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">查看分析工具</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 视频教程 -->
+                <div id="tutorials" class="tab-content">
+                    <div class="content-grid">
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                            <h3 class="card-title">入门教程系列</h3>
+                            <p class="card-description">从零开始学习HIEC平台开发</p>
+                            <ul class="card-features">
+                                <li>第1集：平台介绍与环境搭建 (15分钟)</li>
+                                <li>第2集：创建第一个3D场景 (20分钟)</li>
+                                <li>第3集：集成AI智能服务 (25分钟)</li>
+                                <li>第4集：用户交互设计 (18分钟)</li>
+                                <li>第5集：部署与发布 (12分钟)</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">开始观看</button>
+                                <span style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">观看次数: 28,456</span>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <h3 class="card-title">高级开发技巧</h3>
+                            <p class="card-description">深入掌握HIEC平台高级特性</p>
+                            <ul class="card-features">
+                                <li>性能优化最佳实践 (30分钟)</li>
+                                <li>自定义AI模型集成 (35分钟)</li>
+                                <li>大规模部署架构 (28分钟)</li>
+                                <li>安全与权限管理 (22分钟)</li>
+                                <li>监控与故障排除 (25分钟)</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button style="background: linear-gradient(135deg, #ff6b6b, #feca57); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">观看教程</button>
+                                <span style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">观看次数: 15,234</span>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <h3 class="card-title">实战项目案例</h3>
+                            <p class="card-description">真实项目开发全流程演示</p>
+                            <ul class="card-features">
+                                <li>虚拟化学实验室开发 (45分钟)</li>
+                                <li>AR历史博物馆项目 (50分钟)</li>
+                                <li>AI数学辅导系统 (40分钟)</li>
+                                <li>多人协作学习空间 (35分钟)</li>
+                                <li>智能评估系统构建 (38分钟)</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button style="background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">查看案例</button>
+                                <span style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">观看次数: 19,876</span>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-microphone"></i>
+                            </div>
+                            <h3 class="card-title">技术分享会</h3>
+                            <p class="card-description">专家技术分享与行业趋势</p>
+                            <ul class="card-features">
+                                <li>全息教育技术发展趋势 (60分钟)</li>
+                                <li>AI在教育中的应用前景 (55分钟)</li>
+                                <li>WebXR技术深度解析 (50分钟)</li>
+                                <li>教育数据隐私保护 (45分钟)</li>
+                                <li>开发者社区建设 (40分钟)</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button style="background: linear-gradient(135deg, #a8edea, #fed6e3); color: #333; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">参与分享</button>
+                                <span style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">观看次数: 12,543</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 开发者社区 -->
+                <div id="community" class="tab-content">
+                    <div class="content-grid">
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fab fa-github"></i>
+                            </div>
+                            <h3 class="card-title">GitHub开源项目</h3>
+                            <p class="card-description">参与HIEC开源生态建设</p>
+                            <ul class="card-features">
+                                <li>核心SDK开源代码</li>
+                                <li>示例项目模板</li>
+                                <li>社区贡献指南</li>
+                                <li>Bug反馈与修复</li>
+                                <li>功能请求讨论</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">访问GitHub</button>
+                                <span style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">⭐ 8,432 Stars</span>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fab fa-discord"></i>
+                            </div>
+                            <h3 class="card-title">Discord技术交流</h3>
+                            <p class="card-description">实时技术讨论与问题解答</p>
+                            <ul class="card-features">
+                                <li>技术问答频道</li>
+                                <li>项目展示分享</li>
+                                <li>专家在线答疑</li>
+                                <li>开发者聚会</li>
+                                <li>最新资讯发布</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button style="background: linear-gradient(135deg, #ff6b6b, #feca57); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">加入Discord</button>
+                                <span style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">👥 15,678 成员</span>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <h3 class="card-title">开发者竞赛</h3>
+                            <p class="card-description">展示技能，赢取丰厚奖励</p>
+                            <ul class="card-features">
+                                <li>月度创新应用大赛</li>
+                                <li>年度最佳项目评选</li>
+                                <li>黑客马拉松活动</li>
+                                <li>技术挑战赛</li>
+                                <li>学生开发者专场</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button style="background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">参加竞赛</button>
+                                <span style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">🏆 总奖金池: ¥500万</span>
+                            </div>
+                        </div>
+                        
+                        <div class="content-card">
+                            <div class="card-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3 class="card-title">认证开发者计划</h3>
+                            <p class="card-description">成为HIEC认证专家开发者</p>
+                            <ul class="card-features">
+                                <li>技能认证考试</li>
+                                <li>专家徽章获取</li>
+                                <li>优先技术支持</li>
+                                <li>商业合作机会</li>
+                                <li>年度开发者大会</li>
+                            </ul>
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button style="background: linear-gradient(135deg, #a8edea, #fed6e3); color: #333; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 500;">申请认证</button>
+                                <span style="color: rgba(255,255,255,0.7); padding: 10px; font-size: 0.9rem;">🎖️ 1,234 认证开发者</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function showTab(tabName) {
+            // 隐藏所有标签内容
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 移除所有标签的活动状态
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签内容
+            document.getElementById(tabName).classList.add('active');
+            
+            // 激活选中的标签
+            event.target.classList.add('active');
+        }
+        
+        // 导航栏交互
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+        
+        // 搜索功能
+        const searchInput = document.getElementById('resourceSearch');
+        const categoryFilter = document.getElementById('categoryFilter');
+        
+        function filterContent() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value;
+            const allCards = document.querySelectorAll('.content-card');
+            
+            allCards.forEach(card => {
+                const cardText = card.textContent.toLowerCase();
+                const cardTab = card.closest('.tab-content').id;
+                
+                const matchesSearch = cardText.includes(searchTerm);
+                const matchesCategory = selectedCategory === 'all' || cardTab === selectedCategory;
+                
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = 'block';
+                    card.style.opacity = '1';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        
+        searchInput.addEventListener('input', filterContent);
+        categoryFilter.addEventListener('change', filterContent);
+        
+        // 下载统计功能
+        function trackDownload(sdkName, version) {
+            // 模拟下载统计
+            console.log(`下载统计: ${sdkName} ${version}`);
+            
+            // 更新下载次数显示
+            const downloadCounters = document.querySelectorAll('[data-download-counter]');
+            downloadCounters.forEach(counter => {
+                if (counter.dataset.downloadCounter === sdkName) {
+                    const currentCount = parseInt(counter.textContent.replace(/[^0-9]/g, ''));
+                    counter.textContent = `下载次数: ${(currentCount + 1).toLocaleString()}`;
+                }
+            });
+        }
+        
+        // 页面加载动画
+        window.addEventListener('load', () => {
+            const cards = document.querySelectorAll('.content-card, .team-card, .risk-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(30px)';
+                    card.style.transition = 'all 0.6s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

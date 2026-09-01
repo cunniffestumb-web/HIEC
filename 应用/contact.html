@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联系我们 - 全息智能教育云</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+</head>
+<body>
+    <!-- 背景容器 -->
+    <div class="background-container">
+        <!-- 动画背景 -->
+        <div class="particles-container"></div>
+        
+        <!-- 浮动卡片系统 -->
+        <div class="floating-cards">
+            <!-- 浮动卡片将通过JavaScript动态生成 -->
+        </div>
+
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="container">
+                <div class="nav-container">
+                    <a href="index.html" class="logo">全息智能教育云</a>
+                    <ul class="nav-links">
+                        <li><a href="index.html">首页</a></li>
+                        <li><a href="features.html">功能</a></li>
+                        <li><a href="scenarios.html">场景</a></li>
+                        <li><a href="architecture.html">架构</a></li>
+                        <li><a href="team.html">团队</a></li>
+                        <li><a href="contact.html">联系</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主要内容 -->
+        <main class="main-content">
+            <!-- 英雄区域 -->
+            <section class="hero">
+                <div class="container">
+                    <div class="hero-content">
+                        <h1 class="hero-title">联系我们</h1>
+                        <p class="hero-subtitle">开启合作之旅</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 联系方式 -->
+            <section class="tech-section section-spacing">
+                <div class="container">
+                    <h2 class="section-title">联系方式</h2>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <i class="feature-icon fas fa-envelope"></i>
+                            <h3 class="feature-title">邮箱联系</h3>
+                            <p class="feature-desc">contact@future-design.com</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="feature-icon fas fa-phone"></i>
+                            <h3 class="feature-title">电话咨询</h3>
+                            <p class="feature-desc">400-888-9999</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="feature-icon fas fa-map-marker-alt"></i>
+                            <h3 class="feature-title">公司地址</h3>
+                            <p class="feature-desc">北京市朝阳区科技园区</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="feature-icon fas fa-clock"></i>
+                            <h3 class="feature-title">工作时间</h3>
+                            <p class="feature-desc">周一至周五 9:00-18:00</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 联系表单 -->
+            <section class="tech-section section-spacing" id="contact-form">
+                <div class="container">
+                    <div class="architecture-preview">
+                        <h2 class="architecture-title">在线咨询</h2>
+                        <p class="feature-desc">留下需求，先在当前设备完成一份咨询登记。正式接入团队邮箱后可继续扩展为在线提交。</p>
+                        <form class="contact-form" id="demo-request" novalidate>
+                            <div class="contact-form-grid">
+                                <label class="form-field">
+                                    <span>称呼</span>
+                                    <input type="text" name="name" autocomplete="name" maxlength="40" required placeholder="请输入称呼">
+                                </label>
+                                <label class="form-field">
+                                    <span>联系方式</span>
+                                    <input type="text" name="contact" autocomplete="tel" maxlength="80" required placeholder="手机号或邮箱">
+                                </label>
+                            </div>
+                            <label class="form-field">
+                                <span>咨询类型</span>
+                                <select name="topic">
+                                    <option value="教学演示">教学演示</option>
+                                    <option value="学校合作">学校合作</option>
+                                    <option value="技术接入">技术接入</option>
+                                    <option value="其他需求">其他需求</option>
+                                </select>
+                            </label>
+                            <label class="form-field">
+                                <span>需求说明</span>
+                                <textarea name="message" rows="5" maxlength="600" required placeholder="请简要说明想体验的场景或合作需求"></textarea>
+                            </label>
+                            <div class="contact-form-actions">
+                                <button type="submit" class="cta-button primary"><i class="fas fa-paper-plane"></i>提交咨询</button>
+                                <span class="form-status" id="contact-form-status" role="status" aria-live="polite"></span>
+                            </div>
+                            <p class="form-note">当前展示版不会把表单内容上传到服务器，提交结果仅保存在本机浏览器。</p>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 服务支持 -->
+            <section class="tech-section section-spacing">
+                <div class="container">
+                    <h2 class="section-title">服务支持</h2>
+                    <div class="scenarios-grid">
+                        <div class="scenario-card">
+                            <i class="scenario-icon fas fa-headset"></i>
+                            <h3 class="scenario-title">技术支持</h3>
+                        </div>
+                        
+                        <div class="scenario-card">
+                            <i class="scenario-icon fas fa-book"></i>
+                            <h3 class="scenario-title">产品培训</h3>
+                        </div>
+                        
+                        <div class="scenario-card">
+                            <i class="scenario-icon fas fa-tools"></i>
+                            <h3 class="scenario-title">定制开发</h3>
+                        </div>
+                        
+                        <div class="scenario-card">
+                            <i class="scenario-icon fas fa-handshake"></i>
+                            <h3 class="scenario-title">合作伙伴</h3>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA区域 -->
+            <section class="cta-section">
+                <div class="container">
+                    <h2 class="section-title">立即开始</h2>
+                    <a href="#contact-form" class="cta-button">免费试用</a>
+                </div>
+            </section>
+        </main>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <p>&copy; 2024 未来场景设计. 保留所有权利.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript文件 -->
+    <script src="script.js"></script>
+</body>
+</html>

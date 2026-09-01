@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史场景时空穿越 - 全息智能教育云</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f0f23">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <style>
+        .history-page {
+            background: linear-gradient(135deg, #1a0f0a 0%, #2e1a0f 50%, #3e2a1a 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .history-hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at center, rgba(255,215,0,0.1) 0%, transparent 70%);
+        }
+        
+        .history-3d-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .time-portal {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            transform-style: preserve-3d;
+            animation: timePortalRotate 20s linear infinite;
+        }
+        
+        @keyframes timePortalRotate {
+            0% { transform: rotateY(0deg) rotateX(10deg); }
+            100% { transform: rotateY(360deg) rotateX(10deg); }
+        }
+        
+        .portal-ring {
+            position: absolute;
+            border: 3px solid;
+            border-radius: 50%;
+            animation: portalPulse 3s ease-in-out infinite;
+        }
+        
+        .portal-ring:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            border-color: rgba(255,215,0,0.8);
+            top: 0;
+            left: 0;
+        }
+        
+        .portal-ring:nth-child(2) {
+            width: 450px;
+            height: 450px;
+            border-color: rgba(255,165,0,0.6);
+            top: 75px;
+            left: 75px;
+            animation-delay: -1s;
+        }
+        
+        .portal-ring:nth-child(3) {
+            width: 300px;
+            height: 300px;
+            border-color: rgba(255,140,0,0.4);
+            top: 150px;
+            left: 150px;
+            animation-delay: -2s;
+        }
+        
+        @keyframes portalPulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        
+        .historical-scene {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 15px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,215,0,0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffd700;
+        }
+        
+        .historical-scene:hover {
+            transform: scale(1.1);
+            border-color: rgba(255,215,0,0.8);
+            box-shadow: 0 0 30px rgba(255,215,0,0.5);
+        }
+        
+        .scene-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .scene-title {
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .scene-period {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        
+        /* 历史场景位置 */
+         /* 旧位置样式（已弃用）
+                 .ancient-egypt { top: 10%; left: 10%; }
+                 .ancient-greece { top: 10%; right: 10%; }
+                 .ancient-china { bottom: 10%; left: 10%; }
+                 .medieval-europe { bottom: 10%; right: 10%; }
+                 .renaissance { top: 50%; left: 5%; }
+                 .industrial-revolution { top: 50%; right: 5%; }
+         */
+         /* 历史场景位置：未选中时左右两侧从上到下整齐排列 */
+         .ancient-egypt, .renaissance, .ancient-china { left: 4%; right: auto; }
+         .ancient-greece, .industrial-revolution, .medieval-europe { right: 4%; left: auto; }
+
+         /* 左列从上到下 */
+         .ancient-egypt { top: 20%; }
+         .renaissance { top: 46%; }
+         .ancient-china { top: 72%; }
+
+         /* 右列从上到下 */
+         .ancient-greece { top: 20%; }
+         .industrial-revolution { top: 46%; }
+         .medieval-europe { top: 72%; }
+        
+        .control-panel {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,215,0,0.2);
+            z-index: 1000;
+        }
+        
+        .era-toggle {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #ffd700, #ff8c00);
+            color: #1a0f0a;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .era-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+        }
+        
+        .era-toggle.active {
+            background: linear-gradient(45deg, #ffed4e, #ffd700);
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+        
+        .info-panel {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,215,0,0.2);
+            max-width: 350px;
+            z-index: 1000;
+        }
+        
+        .info-title {
+            color: #ffd700;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .info-content {
+            color: rgba(255,255,255,0.8);
+            line-height: 1.6;
+        }
+        
+        .time-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .time-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: timeFlow 4s linear infinite;
+        }
+        
+        @keyframes timeFlow {
+            0% {
+                transform: translateY(0) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        .timeline-slider {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 800px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 20px;
+            border: 1px solid rgba(255,215,0,0.2);
+            z-index: 1000;
+        }
+        
+        .timeline-track {
+            position: relative;
+            height: 6px;
+            background: rgba(255,215,0,0.2);
+            border-radius: 3px;
+            margin: 20px 0;
+        }
+        
+        .timeline-progress {
+            position: absolute;
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .timeline-markers {
+            position: relative;
+            display: block;
+            height: 28px;
+            margin-top: 10px;
+            padding: 0;
+            overflow: visible;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            top: 0;
+            transform: translateX(-50%);
+            text-align: center;
+            color: rgba(255,215,0,0.7);
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+        .timeline-marker i { margin-right: 6px; }
+        
+        .timeline-marker:hover,
+        .timeline-marker.active {
+            color: #ffd700;
+            background: rgba(255,215,0,0.1);
+        }
+
+        .timeline-marker.first { transform: translateX(0); }
+         .timeline-marker.last { transform: translateX(-100%); }
+
+        /* 选中时代的文明窗口居中显示 */
+        .historical-scene.focused {
+            top: 50% !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translate(-50%, -50%) scale(1.12) !important;
+            z-index: 1800;
+            box-shadow: 0 0 40px rgba(255,215,0,0.45);
+            border-color: rgba(255,215,0,0.85);
+        }
+        .immersive-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(20px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .immersive-content {
+            text-align: center;
+            color: #ffd700;
+            max-width: 800px;
+            padding: 40px;
+        }
+        
+        .immersive-title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            animation: fadeInUp 1s ease;
+        }
+        
+        .immersive-description {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            animation: fadeInUp 1s ease 0.3s both;
+        }
+        
+        .close-immersive {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: none;
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .close-immersive:hover {
+            background: #ffd700;
+            color: #1a0f0a;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* 面板折叠与切换按钮样式 */
+        .control-panel { transition: transform 0.3s ease; }
+        /* 保留右侧 18px 手柄可点击 */
+        .control-panel.collapsed { transform: translate( calc(100% - 18px), -50% ); }
+        .control-panel .panel-toggle {
+            position: absolute;
+            left: -18px;
+            top: 14px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,215,0,0.5);
+            background: rgba(0,0,0,0.6);
+            color: #ffd700;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 1001;
+        }
+        .control-panel .panel-toggle:hover { transform: scale(1.05); box-shadow: 0 0 12px rgba(255,215,0,0.35); }
+
+        .info-panel { transition: transform 0.3s ease; }
+        /* 保留左侧 18px 手柄可点击 */
+        .info-panel.collapsed { transform: translate( calc(-100% + 18px), -50% ); }
+        .info-panel .panel-toggle {
+            position: absolute;
+            right: -18px;
+            top: 14px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,215,0,0.5);
+            background: rgba(0,0,0,0.6);
+            color: #ffd700;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 1001;
+        }
+        .info-panel .panel-toggle:hover { transform: scale(1.05); box-shadow: 0 0 12px rgba(255,215,0,0.35); }
+
+        /* 居中模式：双击面板切换 */
+        .control-panel.centered {
+            left: 50%;
+            right: auto;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .info-panel.centered {
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        /* 置中面板层级提升，确保不被场景遮挡 */
+        .control-panel.centered, .info-panel.centered { z-index: 3200; }
+        .info-panel .panel-toggle:hover { transform: scale(1.05); box-shadow: 0 0 12px rgba(255,215,0,0.35); }
+
+        /* 返回按钮 */
+        .back-link{
+             position: fixed;
+             top: 12px;
+             left: 12px;
+             padding: 8px 12px;
+             border-radius: 18px;
+             border: 1px solid rgba(255,215,0,0.5);
+             background: rgba(0,0,0,0.5);
+             color: #ffd700;
+             text-decoration: none;
+             font-size: 14px;
+             z-index: 3201;
+             backdrop-filter: blur(8px);
+             transition: transform 0.2s ease, box-shadow 0.2s ease;
+         }
+         .back-link:hover{
+             transform: translateY(-1px);
+             box-shadow: 0 6px 18px rgba(255,215,0,0.25);
+         }
+         
+         /* 时间流动进度条样式 */
+         .time-flow-progress {
+             position: fixed;
+             bottom: 10px;
+             left: 50%;
+             transform: translateX(-50%);
+             width: 60%;
+             max-width: 600px;
+             height: 8px;
+             background: rgba(0,0,0,0.6);
+             border-radius: 4px;
+             border: 1px solid rgba(255,215,0,0.3);
+             backdrop-filter: blur(10px);
+             z-index: 1500;
+             display: none;
+             overflow: hidden;
+         }
+         
+         .time-flow-progress-fill {
+             height: 100%;
+             background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
+             border-radius: 3px;
+             width: 0%;
+             transition: width 0.3s ease;
+             position: relative;
+             overflow: hidden;
+         }
+         
+         .time-flow-progress-fill::after {
+             content: '';
+             position: absolute;
+             top: 0;
+             left: -100%;
+             width: 100%;
+             height: 100%;
+             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+             animation: progressShimmer 2s infinite;
+         }
+         
+          @keyframes progressShimmer {
+             0% { left: -100%; }
+             100% { left: 100%; }
+          }
+
+          @media (max-width: 600px) {
+              .history-page,
+              .history-hero,
+              .history-3d-container {
+                  overflow: hidden;
+              }
+
+              .history-hero {
+                  min-height: 100dvh;
+              }
+
+              .time-portal {
+                  width: min(86vw, 360px);
+                  height: min(86vw, 360px);
+              }
+
+              .portal-ring:nth-child(1) {
+                  width: 100%;
+                  height: 100%;
+              }
+
+              .portal-ring:nth-child(2) {
+                  width: 75%;
+                  height: 75%;
+                  top: 12.5%;
+                  left: 12.5%;
+              }
+
+              .portal-ring:nth-child(3) {
+                  width: 50%;
+                  height: 50%;
+                  top: 25%;
+                  left: 25%;
+              }
+
+              .historical-scene {
+                  width: min(138px, 35vw);
+                  height: min(138px, 35vw);
+                  border-radius: 12px;
+              }
+
+              .ancient-egypt,
+              .renaissance,
+              .ancient-china {
+                  left: 0.75rem;
+              }
+
+              .ancient-greece,
+              .industrial-revolution,
+              .medieval-europe {
+                  right: 0.75rem;
+              }
+
+              .ancient-egypt,
+              .ancient-greece { top: 15%; }
+              .renaissance,
+              .industrial-revolution { top: 44%; }
+              .ancient-china,
+              .medieval-europe { top: 73%; }
+
+              .scene-icon { font-size: 2rem; margin-bottom: 6px; }
+              .scene-title { font-size: 0.9rem; }
+              .scene-period { font-size: 0.75rem; }
+
+              .control-panel {
+                  top: 7rem;
+                  right: 0.75rem;
+                  transform: none;
+                  left: 0.75rem;
+                  width: auto;
+                  max-height: none;
+                  overflow: visible;
+                  padding: 10px;
+                  border-radius: 12px;
+                  display: grid;
+                  grid-template-columns: repeat(3, minmax(0, 1fr));
+                  gap: 6px;
+              }
+
+              .control-panel h3,
+              .control-panel > div { grid-column: 1 / -1; }
+              .control-panel h3 { margin-bottom: 4px !important; font-size: 1rem; }
+              .era-toggle {
+                  width: 100%;
+                  margin: 0;
+                  padding: 8px 6px;
+                  font-size: 0.78rem;
+              }
+
+              .control-panel > div {
+                  display: grid;
+                  grid-template-columns: repeat(2, minmax(0, 1fr));
+                  gap: 6px;
+                  margin-top: 4px !important;
+                  padding-top: 8px !important;
+              }
+
+              .info-panel {
+                  left: 0.75rem;
+                  right: 0.75rem;
+                  bottom: 5.75rem;
+                  top: auto;
+                  width: auto;
+                  max-width: none;
+                  max-height: 24vh;
+                  overflow-y: auto;
+                  padding: 12px 14px;
+                  border-radius: 12px;
+                  transform: none;
+              }
+
+              .info-title { font-size: 1.05rem; }
+              .info-content { font-size: 0.86rem; line-height: 1.5; }
+              .control-panel .panel-toggle,
+              .info-panel .panel-toggle {
+                  top: -14px;
+                  right: 8px;
+                  left: auto;
+                  width: 30px;
+                  height: 30px;
+                  border-radius: 50%;
+                  transform: none;
+              }
+
+              .timeline-slider {
+                  left: 0.75rem;
+                  right: 0.75rem;
+                  bottom: 0.75rem;
+                  width: auto;
+                  max-width: none;
+                  transform: none;
+                  padding: 8px 10px;
+                  border-radius: 14px;
+              }
+
+              .timeline-track { margin: 5px 0 8px; }
+              .timeline-markers {
+                  display: flex;
+                  gap: 0.2rem;
+                  height: 28px;
+                  overflow-x: auto;
+                  scrollbar-width: none;
+              }
+
+              .timeline-markers::-webkit-scrollbar { display: none; }
+              .timeline-marker {
+                  position: relative;
+                  flex: 0 0 auto;
+                  transform: none !important;
+                  padding: 4px 6px;
+                  font-size: 0.72rem;
+              }
+          }
+     </style>
+</head>
+<body class="history-page">
+    <!-- 导航栏（复用 chemistry.html 结构） -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="images/logo.svg" alt="HIEC Logo" class="logo-img">
+                全息智能教育云
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link">首页</a></li>
+                <li><a href="features.html" class="nav-link">功能特性</a></li>
+                <li><a href="scenarios.html" class="nav-link">应用场景</a></li>
+                <li><a href="architecture.html" class="nav-link">技术架构</a></li>
+                <li><a href="resources.html" class="nav-link">项目资源</a></li>
+                <li><a href="roadmap.html" class="nav-link">发展路线图</a></li>
+                <li><a href="team.html" class="nav-link">团队介绍</a></li>
+                <li><a href="contact.html" class="nav-link">联系我们</a></li>
+            </ul>
+            <div class="mobile-menu-toggle">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </div>
+        </div>
+        <div class="mobile-nav-menu">
+            <ul class="mobile-nav-links">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="features.html">功能特性</a></li>
+                <li><a href="scenarios.html">应用场景</a></li>
+                <li><a href="architecture.html">技术架构</a></li>
+                <li><a href="resources.html">项目资源</a></li>
+                <li><a href="roadmap.html">发展路线图</a></li>
+                <li><a href="team.html">团队介绍</a></li>
+                <li><a href="contact.html">联系我们</a></li>
+            </ul>
+        </div>
+    </nav>
+<!-- 轻量加载遮罩 -->
+<div id="historyLoading" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);color:#ffd700;z-index:3000;font-family:'Orbitron','Inter',sans-serif;">
+  <div style="text-align:center;">
+    <div style="font-size:18px;letter-spacing:2px;margin-bottom:8px;">历史时空初始化</div>
+    <div style="font-size:12px;opacity:0.8;">Loading...</div>
+  </div>
+</div>
+
+<section class="history-hero">
+  <div class="history-3d-container">
+    <div id="timePortal" class="time-portal">
+      <div class="portal-ring"></div>
+      <div class="portal-ring"></div>
+      <div class="portal-ring"></div>
+    </div>
+    <div id="timeParticles" class="time-particles"></div>
+
+    <div class="historical-scene ancient-egypt" data-era="ancient-egypt">
+      <div class="scene-icon"><i class="fas fa-building"></i></div>
+      <div class="scene-title">古埃及文明</div>
+      <div class="scene-period">前3000年</div>
+    </div>
+    <div class="historical-scene ancient-greece" data-era="ancient-greece">
+      <div class="scene-icon"><i class="fas fa-university"></i></div>
+      <div class="scene-title">古希腊文明</div>
+      <div class="scene-period">前800年</div>
+    </div>
+    <div class="historical-scene ancient-china" data-era="ancient-china">
+      <div class="scene-icon"><i class="fas fa-dragon"></i></div>
+      <div class="scene-title">古代中国</div>
+      <div class="scene-period">商周—汉唐</div>
+    </div>
+    <div class="historical-scene medieval-europe" data-era="medieval-europe">
+      <div class="scene-icon"><i class="fas fa-chess-rook"></i></div>
+      <div class="scene-title">中世纪欧洲</div>
+      <div class="scene-period">5-15世纪</div>
+    </div>
+    <div class="historical-scene renaissance" data-era="renaissance">
+      <div class="scene-icon"><i class="fas fa-palette"></i></div>
+      <div class="scene-title">文艺复兴</div>
+      <div class="scene-period">14-17世纪</div>
+    </div>
+    <div class="historical-scene industrial-revolution" data-era="industrial-revolution">
+      <div class="scene-icon"><i class="fas fa-cogs"></i></div>
+      <div class="scene-title">工业革命</div>
+      <div class="scene-period">18-19世纪</div>
+    </div>
+  </div>
+</section>
+
+        <!-- 在控制面板内添加折叠按钮 -->
+        <div class="control-panel">
+            <button class="panel-toggle" id="toggleRight" title="展开/收起"><i class="fas fa-angles-left"></i></button>
+            <h3 style="color: #ffd700; margin-bottom: 15px; text-align: center;">时代选择</h3>
+            <button class="era-toggle" data-target="ancient-egypt">
+                <i class="fas fa-monument"></i> 古埃及文明
+            </button>
+            <button class="era-toggle" data-target="ancient-greece">
+                <i class="fas fa-university"></i> 古希腊文明
+            </button>
+            <button class="era-toggle active" data-target="ancient-china">
+                <i class="fas fa-dragon"></i> 古代中国
+            </button>
+            <button class="era-toggle" data-target="medieval-europe">
+                <i class="fas fa-chess-rook"></i> 中世纪欧洲
+            </button>
+            <button class="era-toggle" data-target="renaissance">
+                <i class="fas fa-palette"></i> 文艺复兴
+            </button>
+            <button class="era-toggle" data-target="industrial-revolution">
+                <i class="fas fa-cogs"></i> 工业革命
+            </button>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,215,0,0.2);">
+                <button class="era-toggle" onclick="toggleTimeFlow()">
+                    <i class="fas fa-clock"></i> 时间流动
+                </button>
+                <button class="era-toggle" onclick="resetPortal()">
+                    <i class="fas fa-undo"></i> 重置传送门
+                </button>
+            </div>
+        </div>
+        <!-- 在信息面板内添加折叠按钮 -->
+        <div class="info-panel">
+            <button class="panel-toggle" id="toggleLeft" title="展开/收起"><i class="fas fa-angles-right"></i></button>
+            <div class="info-title" id="infoTitle">古埃及文明</div>
+            <div class="info-content" id="infoContent">
+                古埃及是世界四大文明古国之一，以金字塔、法老和象形文字闻名于世。
+                <br><br>
+                <strong>文明特色：</strong><br>
+                • 金字塔建筑奇迹<br>
+                • 象形文字系统<br>
+                • 木乃伊制作技术<br>
+                • 尼罗河文明
+                <br><br>
+                <strong>交互提示：</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>点击历史场景进入沉浸体验</li>
+                    <li>使用时间轴导航不同时期</li>
+                    <li>观察时空传送门旋转</li>
+                </ul>
+            </div>
+        </div>
+    <!-- 时间轴滑块 -->
+    <div class="timeline-slider">
+        <div class="timeline-track">
+            <div class="timeline-progress" id="timelineProgress"></div>
+        </div>
+        <div class="timeline-markers" id="timelineMarkers">
+            <div class="timeline-marker active" data-era="ancient-egypt">古埃及</div>
+            <div class="timeline-marker" data-era="ancient-greece">古希腊</div>
+            <div class="timeline-marker" data-era="ancient-china">古中国</div>
+            <div class="timeline-marker" data-era="medieval-europe">中世纪</div>
+            <div class="timeline-marker" data-era="renaissance">文艺复兴</div>
+            <div class="timeline-marker" data-era="industrial-revolution">工业革命</div>
+        </div>
+    </div>
+    
+    <!-- 时间流动进度条 -->
+    <div class="time-flow-progress" id="timeFlowProgress">
+        <div class="time-flow-progress-fill" id="timeFlowProgressFill"></div>
+    </div>
+
+    <!-- 古代中国引导探究面板 -->
+    <section class="lesson-panel history-lesson-panel" data-lesson-root aria-label="古代中国历史探究">
+        <div class="lesson-panel-header">
+            <div>
+                <div class="lesson-kicker">当前课程</div>
+                <strong>古代中国历史探究</strong>
+            </div>
+            <span class="lesson-status" data-lesson-status>尚未开始</span>
+        </div>
+        <div class="lesson-progress" aria-hidden="true"><div class="lesson-progress-bar" data-lesson-progress></div></div>
+        <div data-lesson-stage></div>
+        <div data-lesson-feedback></div>
+        <div class="lesson-live-state" id="historyLessonState">时空状态：准备开始</div>
+    </section>
+
+    <!-- 沉浸式历史体验 -->
+    <div class="immersive-view" id="immersiveView">
+        <button class="close-immersive" onclick="closeImmersive()">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="immersive-content">
+            <h1 class="immersive-title" id="immersiveTitle">古埃及文明</h1>
+            <p class="immersive-description" id="immersiveDescription">
+                欢迎来到古埃及！您现在身处公元前2500年的吉萨高原，
+                眼前矗立着雄伟的胡夫金字塔。感受古埃及工匠的智慧，
+                聆听法老的传说，探索这个神秘文明的奥秘...
+            </p>
+        </div>
+    </div>
+
+    <!-- JavaScript交互功能 -->
+    <script>
+        // 历史时代信息数据
+        const eraInfo = {
+            'ancient-egypt': {
+                title: '古埃及文明',
+                content: '古埃及是世界四大文明古国之一，以金字塔、法老和象形文字闻名于世。<br><br><strong>文明特色：</strong><br>• 金字塔建筑奇迹<br>• 象形文字系统<br>• 木乃伊制作技术<br>• 尼罗河文明<br><br><strong>重要成就：</strong><br>• 建造了世界七大奇迹之一的金字塔<br>• 发明了纸草纸和象形文字<br>• 创立了365天历法系统',
+                immersive: '欢迎来到古埃及！您现在身处公元前2500年的吉萨高原，眼前矗立着雄伟的胡夫金字塔。感受古埃及工匠的智慧，聆听法老的传说，探索这个神秘文明的奥秘...'
+            },
+            'ancient-greece': {
+                title: '古希腊文明',
+                content: '古希腊是西方文明的摇篮，在哲学、艺术、政治等领域都有卓越贡献。<br><br><strong>文明特色：</strong><br>• 民主政治制度<br>• 哲学思辨传统<br>• 奥林匹克运动会<br>• 古典建筑艺术<br><br><strong>重要成就：</strong><br>• 创立了民主制度<br>• 诞生了苏格拉底、柏拉图等哲学家<br>• 建造了帕特农神庙等建筑杰作',
+                immersive: '欢迎来到古希腊！您现在站在雅典卫城上，帕特农神庙在阳光下闪闪发光。聆听苏格拉底的哲学辩论，观看奥林匹克运动会的激烈竞技，感受民主制度的诞生...'
+            },
+            'ancient-china': {
+                title: '古代中国',
+                content: '古代中国不是一条单线发展的故事，可以从生产生活、文字记录、制度组织和区域交流四条线索来观察。<br><br><strong>关键节点：</strong><br>• 商周：甲骨文、青铜礼制和政治秩序留下了重要证据<br>• 秦：统一文字、度量衡，并以郡县等制度加强中央治理<br>• 汉唐：丝绸之路和城市网络推动了更广范围的人员、物产与知识交流<br><br><strong>学习提醒：</strong><br>不同地区和群体的历史经验并不相同，节点用于建立框架，仍要结合具体史料理解。',
+                immersive: '欢迎来到古代中国！您现在身处唐朝长安城，这里是世界上最繁华的都市。漫步在丝绸之路上，感受东西方文化的交融，体验中华文明的博大精深...'
+            },
+            'medieval-europe': {
+                title: '中世纪欧洲',
+                content: '中世纪是欧洲历史上的重要时期，封建制度和基督教文化占主导地位。<br><br><strong>时代特色：</strong><br>• 封建制度<br>• 骑士文化<br>• 哥特式建筑<br>• 十字军东征<br><br><strong>重要事件：</strong><br>• 查理曼帝国的建立<br>• 十字军东征<br>• 黑死病的流行',
+                immersive: '欢迎来到中世纪欧洲！您现在身处一座雄伟的哥特式大教堂中，彩色玻璃窗投下神圣的光芒。感受骑士的荣誉，聆听吟游诗人的歌谣，体验这个信仰与勇气的时代...'
+            },
+            'renaissance': {
+                title: '文艺复兴',
+                content: '文艺复兴是欧洲从中世纪向近代过渡的重要时期，人文主义思想兴起。<br><br><strong>时代特色：</strong><br>• 人文主义思想<br>• 艺术创新<br>• 科学革命<br>• 地理大发现<br><br><strong>重要人物：</strong><br>• 达芬奇、米开朗基罗等艺术大师<br>• 哥白尼、伽利略等科学家<br>• 哥伦布、麦哲伦等探险家',
+                immersive: '欢迎来到文艺复兴时期！您现在身处达芬奇的工作室，《蒙娜丽莎》正在画架上微笑。感受艺术与科学的完美结合，体验人类智慧的伟大觉醒...'
+            },
+            'industrial-revolution': {
+                title: '工业革命',
+                content: '工业革命彻底改变了人类社会，从农业社会向工业社会转变。<br><br><strong>时代特色：</strong><br>• 蒸汽机发明<br>• 工厂制度<br>• 铁路交通<br>• 城市化进程<br><br><strong>重要发明：</strong><br>• 蒸汽机、纺织机等机械<br>• 铁路和轮船<br>• 电报通信技术',
+                immersive: '欢迎来到工业革命时代！您现在站在一座蒸汽工厂前，机器轰鸣声响彻云霄。感受科技进步的力量，见证人类社会的巨大变革...'
+            }
+        };
+
+        let currentEra = 'ancient-china';
+        let timeFlowActive = false;
+
+        // 系统控制功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化时间粒子
+            initTimeParticles();
+            
+            // 时代切换按钮事件
+            const toggleButtons = document.querySelectorAll('.era-toggle[data-target]');
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const target = this.getAttribute('data-target');
+                    switchEra(target);
+                });
+            });
+
+            // 历史场景点击事件
+            const scenes = document.querySelectorAll('.historical-scene');
+            scenes.forEach(scene => {
+                scene.addEventListener('click', function() {
+                    const era = this.getAttribute('data-era');
+                    openImmersiveView(era);
+                });
+            });
+            
+            // 时间轴标记点击事件
+            const markers = document.querySelectorAll('.timeline-marker');
+            markers.forEach(marker => {
+                marker.addEventListener('click', function() {
+                    const era = this.getAttribute('data-era');
+                    switchEra(era);
+                });
+            });
+
+            // 均匀分布标记并与进度条对齐：首个贴左，最后一个贴右，中间按百分比分布
+            (function distributeTimelineMarkers() {
+                const total = markers.length;
+                const lastIdx = total - 1;
+                markers.forEach((marker, idx) => {
+                    const percent = lastIdx === 0 ? 0 : (idx / lastIdx) * 100;
+                    marker.style.left = percent + '%';
+                    marker.classList.toggle('first', idx === 0);
+                    marker.classList.toggle('last', idx === lastIdx);
+                });
+            })();
+
+            // 首次加载同步当前时代，确保进度条与文本对齐
+            switchEra(currentEra);
+
+            // 面板折叠开关（对齐 chemistry 页）
+            const controlPanelEl = document.querySelector('.control-panel');
+            const infoPanelEl = document.querySelector('.info-panel');
+            const tRight = document.getElementById('toggleRight');
+            const tLeft = document.getElementById('toggleLeft');
+            if (tRight && controlPanelEl) {
+                tRight.addEventListener('click', () => controlPanelEl.classList.toggle('collapsed'));
+            }
+            if (tLeft && infoPanelEl) {
+                tLeft.addEventListener('click', () => infoPanelEl.classList.toggle('collapsed'));
+            }
+
+            // 新增：双击面板切换居中模式，便于将“文明窗口”移动到屏幕中央
+            if (controlPanelEl) {
+                controlPanelEl.addEventListener('dblclick', () => {
+                    controlPanelEl.classList.toggle('centered');
+                    if (controlPanelEl.classList.contains('centered')) {
+                        controlPanelEl.classList.remove('collapsed');
+                    }
+                });
+            }
+            if (infoPanelEl) {
+                infoPanelEl.addEventListener('dblclick', () => {
+                    infoPanelEl.classList.toggle('centered');
+                    if (infoPanelEl.classList.contains('centered')) {
+                        infoPanelEl.classList.remove('collapsed');
+                    }
+                });
+            }
+
+            // 返回上一页按钮逻辑（无历史则回到 overview.html）
+            const backLink = document.getElementById('backLink');
+            if (backLink) {
+                backLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (document.referrer && window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = 'overview.html';
+                    }
+                });
+            }
+
+            // 轻量加载遮罩：短暂可视，加载就绪后隐藏
+            const hisLoading = document.getElementById('historyLoading');
+            if (hisLoading) { setTimeout(() => { hisLoading.style.display = 'none'; }, 450); }
+        });
+
+        // 切换历史时代
+        function switchEra(era) {
+            currentEra = era;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.era-toggle[data-target]').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-target') === era);
+            });
+            
+            // 更新时间轴标记
+            document.querySelectorAll('.timeline-marker').forEach(marker => {
+                marker.classList.toggle('active', marker.getAttribute('data-era') === era);
+            });
+            
+            // 居中底部选中的时间选项卡
+            const markerContainer = document.getElementById('timelineMarkers');
+            if (markerContainer) {
+                const activeMarker = markerContainer.querySelector(`.timeline-marker[data-era="${era}"]`);
+                if (activeMarker) {
+                    const targetLeft = activeMarker.offsetLeft - (markerContainer.clientWidth / 2 - activeMarker.clientWidth / 2);
+                    markerContainer.scrollTo({ left: targetLeft, behavior: 'smooth' });
+                }
+            }
+            
+            // 更新时间轴进度
+            const eras = ['ancient-egypt', 'ancient-greece', 'ancient-china', 'medieval-europe', 'renaissance', 'industrial-revolution'];
+            const idx = eras.indexOf(era);
+            const progress = eras.length > 1 ? (idx / (eras.length - 1)) * 100 : 100;
+            document.getElementById('timelineProgress').style.width = progress + '%';
+            
+            // 更新信息面板
+            const info = eraInfo[era];
+            if (info) {
+                document.getElementById('infoTitle').textContent = info.title;
+                document.getElementById('infoContent').innerHTML = info.content;
+            }
+            
+            // 高亮对应的历史场景 + 将选中的文明窗口移动到中心
+            const scenes = document.querySelectorAll('.historical-scene');
+            scenes.forEach(scene => {
+                const isActive = scene.getAttribute('data-era') === era;
+                scene.style.opacity = isActive ? '1' : '0.6';
+                scene.classList.toggle('focused', isActive);
+            });
+        }
+
+        // 打开沉浸式历史体验
+        function openImmersiveView(era) {
+            const info = eraInfo[era];
+            if (info) {
+                document.getElementById('immersiveTitle').textContent = info.title;
+                document.getElementById('immersiveDescription').textContent = info.immersive;
+                document.getElementById('immersiveView').style.display = 'flex';
+            }
+        }
+
+        // 关闭沉浸式体验
+        function closeImmersive() {
+            document.getElementById('immersiveView').style.display = 'none';
+        }
+
+        // 切换时间流动效果
+        function toggleTimeFlow() {
+            timeFlowActive = !timeFlowActive;
+            const particles = document.getElementById('timeParticles');
+            particles.style.display = timeFlowActive ? 'block' : 'none';
+            
+            // 控制时间粒子系统
+            timeParticleSystem.isActive = timeFlowActive;
+            if (timeFlowActive) {
+                startTimeParticleAnimation();
+                // 开始顺序播放时代 -> 2s 后打开沉浸视图 -> 5s 后关闭 -> 下一个
+                startTimeFlowSequence();
+            } else {
+                if (timeParticleSystem.animationId) {
+                    cancelAnimationFrame(timeParticleSystem.animationId);
+                }
+                // 关闭沉浸视图，确保中断后界面干净
+                closeImmersive();
+            }
+        }
+
+        // 可中断的延时，timeFlowActive 变为 false 时提前返回
+        async function sleepCancellable(ms) {
+            const step = 100;
+            let waited = 0;
+            while (waited < ms) {
+                if (!timeFlowActive) return false;
+                await new Promise(r => setTimeout(r, step));
+                waited += step;
+            }
+            return true;
+        }
+        
+        // 顺序播放时间流动：依次选中时代、展示沉浸内容并自动关闭
+        async function startTimeFlowSequence() {
+            const erasOrder = ['ancient-egypt', 'ancient-greece', 'ancient-china', 'medieval-europe', 'renaissance', 'industrial-revolution'];
+            const progressBar = document.getElementById('timeFlowProgress');
+            const progressFill = document.getElementById('timeFlowProgressFill');
+            
+            // 显示进度条
+            if (progressBar) progressBar.style.display = 'block';
+            
+            // 计算总时间：每个时代1秒等待 + 5秒展示 = 6秒，共6个时代 = 36秒
+            const totalDuration = erasOrder.length * 6000; // 总时长36秒
+            const startTime = Date.now();
+            
+            // 启动进度条动画
+            let progressInterval;
+            if (progressFill) {
+                progressInterval = setInterval(() => {
+                    if (!timeFlowActive) {
+                        clearInterval(progressInterval);
+                        return;
+                    }
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min((elapsed / totalDuration) * 100, 100);
+                    progressFill.style.width = progress + '%';
+                }, 50); // 每50ms更新一次，实现平滑动画
+            }
+            
+            for (let i = 0; i < erasOrder.length; i++) {
+                if (!timeFlowActive) break;
+                const era = erasOrder[i];
+                
+                // 选中底部进度条对应的时代
+                switchEra(era);
+                // 延后 1 秒再展示沉浸内容（从2秒调整为1秒）
+                const proceed1 = await sleepCancellable(1000);
+                if (!proceed1) break;
+                
+                // 添加淡入效果
+                const immersiveView = document.getElementById('immersiveView');
+                if (immersiveView) {
+                    immersiveView.style.opacity = '0';
+                    immersiveView.style.transition = 'opacity 0.5s ease-in-out';
+                }
+                
+                openImmersiveView(era);
+                
+                // 淡入动画
+                if (immersiveView) {
+                    setTimeout(() => {
+                        immersiveView.style.opacity = '1';
+                    }, 50);
+                }
+                
+                // 展示 5 秒后自动关闭
+                const proceed2 = await sleepCancellable(5000);
+                
+                // 淡出效果
+                if (immersiveView) {
+                    immersiveView.style.opacity = '0';
+                    await new Promise(resolve => setTimeout(resolve, 500)); // 等待淡出完成
+                }
+                
+                // 若在等待过程中被中断，也关闭一次确保干净
+                closeImmersive();
+                if (!proceed2) break;
+            }
+            
+            // 清除进度条动画
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+            
+            // 确保进度条达到100%
+            if (progressFill && timeFlowActive) {
+                progressFill.style.width = '100%';
+            }
+            
+            // 隐藏进度条
+            if (progressBar) {
+                progressBar.style.opacity = '0';
+                progressBar.style.transition = 'opacity 0.5s ease-out';
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    progressBar.style.opacity = '1';
+                    progressBar.style.transition = '';
+                }, 500);
+            }
+             隐藏进度条并添加渐变回到开始界面的效果
+             if (progressBar) {
+                 progressBar.style.opacity = '0';
+                 progressBar.style.transition = 'opacity 0.5s ease-out';
+                 setTimeout(() => {
+                     progressBar.style.display = 'none';
+                     progressBar.style.opacity = '1';
+                     progressBar.style.transition = '';
+                 }, 500);
+             }
+             
+             // 添加渐变回到开始界面的效果
+             const heroSection = document.querySelector('.history-hero');
+             if (heroSection) {
+                 heroSection.style.opacity = '0';
+                 heroSection.style.transition = 'opacity 0.8s ease-in-out';
+                 setTimeout(() => {
+                     heroSection.style.opacity = '1';
+                 }, 100);
+             }
+             
+             // 流程结束或被中断后，统一复位 timeFlow 状态与粒子
+             timeFlowActive = false;
+             const particles = document.getElementById('timeParticles');
+             if (particles) particles.style.display = 'none';
+             timeParticleSystem.isActive = false;
+             if (timeParticleSystem.animationId) {
+                 cancelAnimationFrame(timeParticleSystem.animationId);
+             }
+        }
+
+        // 重置传送门
+        function resetPortal() {
+            const portal = document.getElementById('timePortal');
+            portal.style.animation = 'none';
+            setTimeout(() => {
+                portal.style.animation = 'timePortalRotate 20s linear infinite';
+            }, 100);
+            
+            // 重置到古埃及
+            switchEra('ancient-egypt');
+        }
+
+        // 初始化时间粒子
+        // 优化的时间粒子系统
+        let timeParticleSystem = {
+            container: null,
+            particles: [],
+            maxParticles: 25,
+            isActive: true,
+            animationId: null,
+            lastCreateTime: 0,
+            createInterval: 400
+        };
+        
+        function initTimeParticles() {
+            timeParticleSystem.container = document.getElementById('timeParticles');
+            if (!timeParticleSystem.container) return;
+            
+            startTimeParticleAnimation();
+        }
+        
+        function startTimeParticleAnimation() {
+            function animate(currentTime) {
+                if (!timeParticleSystem.isActive) {
+                    return;
+                }
+                
+                if (currentTime - timeParticleSystem.lastCreateTime > timeParticleSystem.createInterval) {
+                    createOptimizedTimeParticle();
+                    timeParticleSystem.lastCreateTime = currentTime;
+                }
+                
+                cleanupTimeParticles();
+                timeParticleSystem.animationId = requestAnimationFrame(animate);
+            }
+            
+            timeParticleSystem.animationId = requestAnimationFrame(animate);
+        }
+        
+        function createOptimizedTimeParticle() {
+            if (timeParticleSystem.particles.length >= timeParticleSystem.maxParticles) {
+                return;
+            }
+            
+            const particle = document.createElement('div');
+            particle.className = 'time-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = '0s';
+            
+            timeParticleSystem.container.appendChild(particle);
+            timeParticleSystem.particles.push({
+                element: particle,
+                createdAt: Date.now(),
+                duration: 4000
+            });
+        }
+        
+        function cleanupTimeParticles() {
+            const now = Date.now();
+            timeParticleSystem.particles = timeParticleSystem.particles.filter(particleData => {
+                const age = now - particleData.createdAt;
+                if (age > particleData.duration) {
+                    if (particleData.element.parentNode) {
+                        particleData.element.parentNode.removeChild(particleData.element);
+                    }
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        // 键盘快捷键：← → 切换时代，T 切换时间流动，R 重置传送门，Enter 打开沉浸，Esc 关闭沉浸
+        document.addEventListener('keydown', function(e) {
+            const order = ['ancient-egypt','ancient-greece','ancient-china','medieval-europe','renaissance','industrial-revolution'];
+            if (e.key === 'Escape') {
+                closeImmersive();
+                return;
+            }
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                let idx = order.indexOf(currentEra);
+                if (idx > 0) idx--;
+                switchEra(order[idx]);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                let idx = order.indexOf(currentEra);
+                if (idx < order.length - 1) idx++;
+                switchEra(order[idx]);
+            } else if (e.key === 't' || e.key === 'T') {
+                toggleTimeFlow();
+            } else if (e.key === 'r' || e.key === 'R') {
+                resetPortal();
+            } else if (e.key === 'Enter') {
+                openImmersiveView(currentEra);
+            }
+        });
+    </script>
+
+    <script src="script.js"></script>
+    <script src="scripts/lesson-flow.js"></script>
+    <script>
+      window.HIECLesson.init({
+        id: 'history-ancient-china',
+        subject: '历史',
+        title: '古代中国历史探究',
+        goal: '沿着河流、文字与制度三条线索，理解古代中国文明形成与发展的基本关系。',
+        duration: '6 分钟',
+        steps: [
+          {
+            title: '定位古代中国',
+            text: '先在时间轴中定位古代中国，再观察它与其他时代在时间上的相对位置。',
+            tip: '历史学习先建立时间和空间坐标，再讨论事件之间的关系。',
+            actions: [{ action: 'focus-ancient-china', label: '定位古代中国' }],
+          },
+          {
+            title: '观察三条线索',
+            text: '围绕生产生活、文字记录、制度组织和区域交流四条线索，先查看商周留下的证据，再思考文明如何从生活经验逐步形成稳定结构。',
+            tip: '这里讨论的是分析框架，不把复杂历史过程简化成单一原因。',
+            actions: [
+              { action: 'show-evidence', label: '查看史料线索' },
+              { action: 'show-milestones', label: '查看朝代节点' },
+            ],
+          },
+          {
+            title: '建立因果链',
+            text: '尝试把“定居与生产”“信息记录”“社会组织”连接起来，再判断哪些是条件、哪些是结果。',
+            tip: '把时间、地点、人物和制度放在一起，才能避免只记孤立事件。',
+            actions: [{ action: 'show-cause', label: '查看因果链' }],
+          },
+          {
+            title: '准备历史检测',
+            text: '回到时间轴，复述古代中国的位置和三条线索，再进入三道小测。',
+            tip: '完成检测后会生成本地学习报告，不需要登录或上传数据。',
+          },
+        ],
+        quiz: [
+          {
+            question: '历史探究中，为什么要先建立时间和空间坐标？',
+            options: ['为了让页面更有动画', '为了理解事件的先后与背景', '为了替代史料阅读', '为了只记住一个年份'],
+            correct: 1,
+            explanation: '时间和空间坐标能够帮助我们理解事件发生的背景、顺序和影响。',
+          },
+          {
+            question: '古代中国文明探究中，哪组线索更适合一起观察？',
+            options: ['生产生活、文字记录、制度组织与区域交流', '颜色与字体、动画与音效', '天气与网速、设备与分辨率', '标题与按钮、图片与边框'],
+            correct: 0,
+            explanation: '这些线索分别对应生产生活、知识记录、社会组织和跨区域联系，可以互相联系起来分析。',
+          },
+          {
+            question: '面对一个历史结论，比较稳妥的学习方法是什么？',
+            options: ['只看一句摘要', '只相信单一观点', '结合时代背景和史料进行核对', '跳过不同解释'],
+            correct: 2,
+            explanation: '结合背景和史料核对，能够减少脱离语境理解历史的风险。',
+          },
+        ],
+        report: percentage => percentage >= 80
+          ? '你已经掌握了本次探究的基本框架，可以继续比较不同文明的发展条件。'
+          : '建议重新查看时间轴和三条线索，再用“背景、过程、影响”复述一次。',
+        onAction(action) {
+          const state = document.getElementById('historyLessonState');
+          if (action === 'focus-ancient-china') {
+            window.switchEra?.('ancient-china');
+            if (state) state.textContent = '时空状态：已定位古代中国';
+          }
+          if (action === 'show-evidence') {
+            window.switchEra?.('ancient-china');
+            const title = document.getElementById('infoTitle');
+            const content = document.getElementById('infoContent');
+            if (title) title.textContent = '史料线索：商周时期';
+            if (content) content.innerHTML = '可从四条线索观察：聚落与生产帮助理解社会基础，甲骨文帮助理解文字记录，青铜器与礼制帮助理解身份和秩序，区域交流帮助理解物产与技术如何传播。每条线索都需要回到具体材料核对。';
+            if (state) state.textContent = '时空状态：已查看商周史料线索';
+          }
+          if (action === 'show-milestones') {
+            window.switchEra?.('ancient-china');
+            const title = document.getElementById('infoTitle');
+            const content = document.getElementById('infoContent');
+            if (title) title.textContent = '历史节点：从商周到汉唐';
+            if (content) content.innerHTML = '<strong>商周</strong>：观察甲骨文、青铜礼制与政治秩序。<br><br><strong>秦</strong>：观察统一文字、度量衡和郡县等制度整合。<br><br><strong>汉唐</strong>：观察城市、交通网络和丝绸之路带来的区域交流。<br><br>节点用于定位问题，不等于把漫长历史压缩成单一因果。';
+            if (state) state.textContent = '时空状态：已查看商周、秦、汉唐节点';
+          }
+          if (action === 'show-cause') {
+            const title = document.getElementById('infoTitle');
+            const content = document.getElementById('infoContent');
+            if (title) title.textContent = '分析框架：从生活到组织';
+            if (content) content.innerHTML = '定居与生产积累生活经验 → 文字与记录保存和传播经验 → 制度与组织协调更复杂的共同事务。这个链条用于提出问题，不能替代对具体史料的分析。';
+            if (state) state.textContent = '时空状态：已查看因果分析框架';
+          }
+        },
+        onStart() {
+          window.switchEra?.('ancient-china');
+        },
+        onReset() {
+          const state = document.getElementById('historyLessonState');
+          if (state) state.textContent = '时空状态：准备开始';
+        },
+      });
+    </script>
+</body>
+</html>
