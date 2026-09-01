@@ -28,6 +28,10 @@ npm start
 
 当前电脑上的临时公网预览地址不会作为永久网址写入项目，因为它依赖本机进程，关闭服务后会失效。要让所有人长期访问，请将本目录上传到 GitHub 后使用 Render 部署，项目根目录选择 `HIEC-技术优化版`，服务根目录选择 `应用`；根目录的 `render.yaml` 已准备好配置。
 
+当前已启用 GitHub Pages 公网预览：[https://cunniffestumb-web.github.io/HIEC/](https://cunniffestumb-web.github.io/HIEC/)。该地址提供 HTTPS，不要求 ICP 备案，适合手机浏览器访问和“安装到手机”PWA。GitHub Pages 发布的是 `应用/`，本地的 `材料-原版/` 不参与网站部署。
+
+GitHub Pages 是静态托管，因此默认离线演示、化学和历史交互、3D 场景、学习记录与 PWA 均可用；`/api` 服务端接口需要使用下方的 Render 或 Vercel 部署方式。
+
 也可以在 Vercel 登录后进入 `应用` 目录执行 `vercel --prod`。Vercel 适合公开网页和 AI 接口，WebSocket 协作会自动降级为本地演示；需要真实 WebSocket 协作时使用 Render 或 Railway。海外托管平台不需要 ICP 备案，但中国大陆不同运营商的访问速度和稳定性可能有差异，建议先用 Vercel HTTPS 域名实测，再决定是否迁移到已有的境外 CDN 节点。
 
 默认是离线演示模式，不需要 API 密钥。功能页的 API 设置可以直接填写 DeepSeek 地址、模型和 Key；也可以复制 `应用/.env.example` 为 `应用/.env`，配置 `HIEC_AI_MODE=deepseek` 和 `DEEPSEEK_API_KEY`，使用服务端代理。浏览器直连只适合个人或比赛演示，Key 会保存在当前浏览器本地；公共部署建议使用服务端代理。
