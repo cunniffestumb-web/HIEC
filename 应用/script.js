@@ -523,6 +523,8 @@ function showPWAInstallButton() {
     button.type = 'button';
     button.id = 'pwa-install-button';
     button.className = 'pwa-install-button';
+    button.setAttribute('aria-label', '安装到手机');
+    button.title = '安装到手机';
     button.innerHTML = '<i class="fas fa-mobile-screen-button" aria-hidden="true"></i><span>安装到手机</span>';
     button.addEventListener('click', async () => {
         if (!deferredInstallPrompt) {
@@ -534,7 +536,15 @@ function showPWAInstallButton() {
         if (result.outcome === 'accepted') button.remove();
         deferredInstallPrompt = null;
     });
-    document.body.appendChild(button);
+
+    const navContainer = document.querySelector('.navbar .nav-container');
+    const navActionAnchor = navContainer?.querySelector('.mobile-menu-toggle, .hamburger');
+    if (navContainer) {
+        navContainer.insertBefore(button, navActionAnchor || null);
+    } else {
+        button.classList.add('pwa-install-fallback');
+        document.body.appendChild(button);
+    }
 }
 
 window.addEventListener('beforeinstallprompt', event => {

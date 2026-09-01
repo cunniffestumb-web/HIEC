@@ -4203,11 +4203,24 @@ select {
     .nav-container {
         flex-wrap: wrap;
         row-gap: 0.4rem;
+        column-gap: 0.65rem;
+    }
+
+    /* 移动端首行只保留品牌、安装入口和菜单按钮，导航链接单独占一行。 */
+    .pwa-install-button {
+        order: 2;
+        margin-left: auto;
+    }
+
+    .mobile-menu-toggle,
+    .hamburger {
+        order: 3;
+        flex: 0 0 auto;
     }
 
     .nav-links {
         display: flex;
-        order: 3;
+        order: 4;
         flex: 0 0 100%;
         width: 100%;
         flex-wrap: nowrap;
@@ -4229,7 +4242,7 @@ select {
 
     .nav-menu {
         display: flex;
-        order: 3;
+        order: 4;
         flex: 0 0 100%;
         width: 100%;
         flex-wrap: nowrap;
@@ -4585,23 +4598,46 @@ select {
 }
 
 .pwa-install-button {
-    position: fixed;
-    right: 1rem;
-    bottom: 1rem;
-    z-index: 2100;
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.45rem;
-    min-height: 44px;
+    min-height: 38px;
     padding: 0.65rem 0.85rem;
     color: #07111b;
     background: var(--accent-cyan, #00d4ff);
-    border: 0;
-    border-radius: 999px;
+    border: 1px solid rgba(0, 212, 255, 0.7);
+    border-radius: 8px;
     box-shadow: 0 8px 24px rgba(0, 212, 255, 0.24);
     cursor: pointer;
+    font-size: 0.82rem;
     font-weight: 700;
     white-space: nowrap;
+    margin-left: auto;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pwa-install-button:hover {
+    background: #fff;
+    border-color: #fff;
+    box-shadow: 0 8px 26px rgba(0, 212, 255, 0.32);
+    transform: translateY(-1px);
+}
+
+.pwa-install-button:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.86);
+    outline-offset: 3px;
+}
+
+.pwa-install-fallback {
+    position: fixed;
+    right: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+    z-index: 2100;
+    margin-left: 0;
 }
 
 /* 联系页的静态演示表单 */
@@ -4687,7 +4723,9 @@ select {
 
 .pwa-install-button {
     top: auto;
-    bottom: calc(1rem + env(safe-area-inset-bottom));
+    right: auto;
+    bottom: auto;
+    left: auto;
 }
 
 .chemistry-page .lesson-panel {
@@ -4774,11 +4812,28 @@ select {
     }
 
     .pwa-install-button {
-        top: calc(4.5rem + env(safe-area-inset-top));
-        right: auto;
-        left: 50%;
-        transform: translateX(-50%);
-        bottom: auto;
-        max-width: calc(100vw - 1.5rem);
+        min-width: 2.5rem;
+        width: 2.5rem;
+        min-height: 2.5rem;
+        padding: 0;
+        border-radius: 50%;
+        box-shadow: 0 5px 16px rgba(0, 212, 255, 0.25);
+    }
+
+    .pwa-install-button span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .pwa-install-fallback {
+        right: 0.75rem;
+        bottom: calc(0.75rem + env(safe-area-inset-bottom));
     }
 }
