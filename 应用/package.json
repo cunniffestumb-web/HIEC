@@ -1,6 +1,6 @@
 {
   "name": "hiec-technical-optimized",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "HIEC 全息智能教育云竞赛展示版：静态场景与安全 AI 服务代理",
   "type": "commonjs",

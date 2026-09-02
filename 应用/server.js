@@ -347,7 +347,7 @@ function localIp() {
 server.on('listening', () => {
   const address = server.address();
   const port = typeof address === 'object' && address ? address.port : PORT;
-  console.log(`HIEC 技术优化版已启动: http://localhost:${port}/`);
+  console.log(`HIEC 2.0 已启动: http://localhost:${port}/`);
   console.log(`AI 模式: ${AI_MODE === 'deepseek' || AI_MODE === 'online' ? '服务端 DeepSeek' : '离线演示'}`);
   if (localIp()) console.log(`局域网访问: http://${localIp()}:${port}/`);
 });
